@@ -1,0 +1,258 @@
+/***************************************************************************
+#                     NORTH CAROLINA STATE UNIVERSITY
+#                                  CESR
+#
+# File Name     : precharge.ill
+#
+# Purpose       : Generate precharge circuit and required routing for the 
+#		  Match line
+# Version       : 1.0
+# Date          :
+# Author        : Tanmay Shah
+#
+#**************************************************************************/
+
+;; Precharge Unit
+
+     delW_prec=1.18
+     width = del_w*W + 2*PITCH_M2
+     height = -0.065
+     j = 0
+     
+     if(W>32 then PMOS_size=0.720
+     else PMOS_size=0.360)
+     width1 = del_w*W+4*PITCH_M2+PMOS_size;
+     dbCreatePath(cv "metal3" list(width1:-2*PITCH_M2 width1:del_h*D+2*PITCH_M2) 0.07);clk_route
+     dbCreateInst(cv M2M3_cvB nil list(width1 -2*PITCH_M2) "R90")
+     dbCreatePath(cv "metal2" list(width1:del_h*D+2*PITCH_M2 width:del_h*D+2*PITCH_M2) 0.07);
+     dbCreateInst(cv M2M3_cvB nil list(width del_h*D+2*PITCH_M2) "R0")
+     dbCreateInst(cv M2M3_cvB nil list(width1 del_h*D+2*PITCH_M2) "R0")
+     width2 = width1 + 2*PITCH_M2 + PMOS_size;
+     dbCreatePath(cv "metal1" list(del_w*W+PITCH_M2:-2*PITCH_M2 width2:-2*PITCH_M2 width2:del_h*D del_w*W+PITCH_M2:del_h*D) 0.065);VDD
+     dbCreateInst(cv M2M1_cv nil list(del_w*W+PITCH_M2 -2*PITCH_M2) "R90")
+     dbCreateInst(cv M2M3_cvB nil list(del_w*W+PITCH_M2 -2*PITCH_M2) "R0")
+     dbCreateRect(cv "nwell" list(width1-PMOS_size-PITCH_M2:PITCH_M2 width2:del_h*D-2*PITCH_M2))
+     /*##############	No of prec 	##################*/
+     declare(no_of_prec[3]);
+     level=3.0;
+     total_prec = Rp;
+     for(i 0 2
+       	   no_of_prec[i]=ceiling(total_prec/level);
+       	   level--;
+       	   total_prec = total_prec - no_of_prec[i];
+     ); for_loop
+     width1 = del_w*W+4*PITCH_M2+PMOS_size;
+     flagV=0;
+     for(bit_no 0 D-1
+	level = 0;
+	total_prec = 0;
+	prec_flag = 0;
+	prec_cnt = 0;
+	index = 0;
+	if(flagV==0 then
+	while(total_prec<Rp
+		while(wl_array[index]>Rp
+			index++;
+		)
+		height = bit_no*del_h + wl_posi[index];	
+		if(((total_prec <= Rp-2) && (prec_cnt <= no_of_prec[level]-2) && (no_of_prec[level]>2)) then
+			width = width1 - PITCH_M2;
+			sprintf(rotation,"R90");
+			dbCreateParamInst(cv pm_cv nil list(width height) rotation i 
+				  list(list("fingers" "integer" 2) list("w" "float" PMOS_size) 
+			          list("diffContactCenter" "boolean" t)))
+			height2 = height + 0.025;
+			height3 = height2 + 0.19;
+			dbCreatePath(cv "poly" list(width:height2 width1:height2
+						    width1:height3 width:height3) 0.05);
+			height2 = height + 0.1175;
+			dbCreatePath(cv "metal1" list(width:height2 width+3*PITCH_M2+PMOS_size:height2) 0.065)
+			dbCreateInst(cv NTAP_cv nil list(width+3.5*PITCH_M2+PMOS_size height2) "R90")
+			width2 = width-PMOS_size+PITCH_M2
+			dbCreatePath(cv "metal2" list(del_w*W:height width2:height) 0.07)
+			sprintf(str,"ML_%d<%d>",wl_array[index],bit_no);
+		        dbCreateLabel(cv "metal2" width2:height str "centerCenter" "R0" "roman" 0.0275)
+			height2 = height - 0.0675;
+			dbCreateInst(cv M2M1_cv nil list(width2 height2) "R0")
+			dbCreatePath(cv "metal2" list(width2:height+PITCH_M2/4 width2:height2) 0.07)
+
+			index1 = index;
+			index++;
+			index2 = index;
+			index++;
+			prec_flag = 1;
+			while(wl_array[index]>Rp
+				index++)
+			height3 = bit_no*del_h + wl_posi[index];
+			dbCreatePath(cv "metal2" list(del_w*W:height3 width2:height3) 0.07)
+			sprintf(str,"ML_%d<%d>",wl_array[index],bit_no);
+		        dbCreateLabel(cv "metal2" width2:height3 str "centerCenter" "R0" "roman" 0.0275)
+			height2 = height + 0.3075;
+			dbCreateInst(cv M2M1_cv nil list(width2 height2) "R0")
+			dbCreatePath(cv "metal2" list(width2:height3-PITCH_M2/4 width2:height2) 0.07)
+			index = index - 1;
+			prec_cnt = prec_cnt + 2;
+			total_prec = total_prec + 2;
+		else if(prec_cnt == 0 then
+			width = width1 - PITCH_M2;
+			sprintf(rotation,"R90");
+			;dbCreateInst(cv pm_cv nil list(width height) "R90");
+			dbCreateParamInst(cv pm_cv nil list(width height) rotation i 
+				  list(list("fingers" "integer" 1) list("w" "float" PMOS_size)))
+			height2 = height + 0.025;
+			dbCreatePath(cv "poly" list(width:height2 width1:height2) 0.05);
+			height2 = height + 0.1175;
+			dbCreatePath(cv "metal1" list(width:height2 width+3*PITCH_M2+PMOS_size:height2) 0.065)
+			dbCreateInst(cv NTAP_cv nil list(width+3.5*PITCH_M2+PMOS_size height2) "R90")
+			dbCreatePath(cv "metal2" list(del_w*W:height width:height) 0.07)
+			sprintf(str,"ML_%d<%d>",wl_array[index],bit_no);
+		        dbCreateLabel(cv "metal2" width:height str "centerCenter" "R0" "roman" 0.0275)
+			width2 = width-PMOS_size+PITCH_M2
+			dbCreatePath(cv "metal2" list(del_w*W:height width2:height) 0.07)
+			height2 = height - 0.0675;
+			dbCreateInst(cv M2M1_cv nil list(width2 height2) "R0")
+			dbCreatePath(cv "metal2" list(width2:height+PITCH_M2/4 width2:height2) 0.07)
+			index1 = index;		
+			index++;				
+			prec_cnt = prec_cnt + 1;
+			total_prec = total_prec + 1;
+		    else
+			width = width1 + PITCH_M2;
+			sprintf(rotation,"MXR90");
+			height3 = bit_no*del_h + wl_posi[index1];
+			dbCreateParamInst(cv pm_cv nil list(width height3) rotation i 
+				  list(list("fingers" "integer" 1) list("w" "float" PMOS_size)))
+			height2 = height3 + 0.025;
+			dbCreatePath(cv "poly" list(width:height2 width1:height2) 0.05);
+			height2 = height3 + 0.1175;
+			height = bit_no*del_h + wl_posi[index];
+			width2 = width+PITCH_M2
+			dbCreatePath(cv "metal2" list(del_w*W:height width2:height) 0.07)
+			sprintf(str,"ML_%d<%d>",wl_array[index],bit_no);
+		        dbCreateLabel(cv "metal2" width2:height str "centerCenter" "R0" "roman" 0.0275)
+			height2 = height3 - 0.0675;
+			dbCreateInst(cv M2M1_cv nil list(width2 height2) "R0")
+			dbCreatePath(cv "metal2" list(width2:height+PITCH_M2/4 width2:height2) 0.07)
+			if(prec_flag == 0 then
+				index++;				
+			else    index = index + 2;
+			) 
+			prec_cnt = prec_cnt + 1;
+			total_prec = total_prec + 1;
+		    ); if_cond
+		) ; if_cond
+		if(prec_cnt == no_of_prec[level] then
+			level = level + 1;
+			prec_cnt = 0;
+			prec_flag = 0;
+			height = bit_no*del_h + wl_posi[index1] - PITCH_M2/2;
+			dbCreateRect(cv "poly" list(width1-0.0375:height width1+0.0375:height+PITCH_M2/2+0.05))
+			dbCreateInst(cv M1P_cv nil list(width1 height) "R0")
+			dbCreateInst(cv M2M1_cv nil list(width1 height) "R90")
+			dbCreateInst(cv M2M3_cvB nil list(width1 height) "R0")
+		)
+	) ; while_loop
+	else ; if_cond top
+	while(total_prec<Rp
+		while(wl_array[index]>Rp
+			index++;
+		)
+		height = (bit_no+1)*del_h - wl_posi[index];	
+		if(((total_prec <= Rp-2) && (prec_cnt <= no_of_prec[level]-2) && (no_of_prec[level]>2)) then
+			width = width1 - PITCH_M2;
+			sprintf(rotation,"MYR90");
+			dbCreateParamInst(cv pm_cv nil list(width height) rotation i 
+				  list(list("fingers" "integer" 2) list("w" "float" PMOS_size) 
+			          list("diffContactCenter" "boolean" t)))
+			height2 = height - 0.025;
+			height3 = height2 - 0.19;
+			dbCreatePath(cv "poly" list(width:height2 width1:height2
+						    width1:height3 width:height3) 0.05);
+			height2 = height - 0.1175;
+			dbCreatePath(cv "metal1" list(width:height2 width+3*PITCH_M2+PMOS_size:height2) 0.065)
+			width2 = width-PMOS_size+PITCH_M2
+			dbCreatePath(cv "metal2" list(del_w*W:height width2:height) 0.07)
+			sprintf(str,"ML_%d<%d>",wl_array[index],bit_no);
+		        dbCreateLabel(cv "metal2" width2:height str "centerCenter" "R0" "roman" 0.0275)
+			height2 = height + 0.0675;
+			dbCreateInst(cv M2M1_cv nil list(width2 height2) "R0")
+			dbCreatePath(cv "metal2" list(width2:height-PITCH_M2/4 width2:height2) 0.07)
+
+			index1 = index;
+			index++;
+			index2 = index;
+			index++;
+			prec_flag = 1;
+			while(wl_array[index]>Rp
+				index++)
+			height3 = (bit_no+1)*del_h - wl_posi[index];
+			dbCreatePath(cv "metal2" list(del_w*W:height3 width2:height3) 0.07)
+			sprintf(str,"ML_%d<%d>",wl_array[index],bit_no);
+		        dbCreateLabel(cv "metal2" width2:height3 str "centerCenter" "R0" "roman" 0.0275)
+			height2 = height - 0.3075;
+			dbCreateInst(cv M2M1_cv nil list(width2 height2) "R0")
+			dbCreatePath(cv "metal2" list(width2:height3+PITCH_M2/4 width2:height2) 0.07)
+			index = index - 1;
+			prec_cnt = prec_cnt + 2;
+			total_prec = total_prec + 2;
+		else if(prec_cnt == 0 then
+			width = width1 - PITCH_M2;
+			sprintf(rotation,"MYR90");
+			dbCreateParamInst(cv pm_cv nil list(width height) rotation i 
+				  list(list("fingers" "integer" 1) list("w" "float" PMOS_size)))
+			height2 = height - 0.025;
+			dbCreatePath(cv "poly" list(width:height2 width1:height2) 0.05);
+			height2 = height - 0.1175;
+			dbCreatePath(cv "metal1" list(width:height2 width+3*PITCH_M2+PMOS_size:height2) 0.065)
+			dbCreatePath(cv "metal2" list(del_w*W:height width:height) 0.07)
+			sprintf(str,"ML_%d<%d>",wl_array[index],bit_no);
+		        dbCreateLabel(cv "metal2" width:height str "centerCenter" "R0" "roman" 0.0275)
+			width2 = width-PMOS_size+PITCH_M2
+			dbCreatePath(cv "metal2" list(del_w*W:height width2:height) 0.07)
+			height2 = height + 0.0675;
+			dbCreateInst(cv M2M1_cv nil list(width2 height2) "R0")
+			dbCreatePath(cv "metal2" list(width2:height-PITCH_M2/4 width2:height2) 0.07)
+			index1 = index;		
+			index++;				
+			prec_cnt = prec_cnt + 1;
+			total_prec = total_prec + 1;
+		    else
+			width = width1 + PITCH_M2;
+			sprintf(rotation,"R270");
+			height3 = (bit_no+1)*del_h - wl_posi[index1];
+			dbCreateParamInst(cv pm_cv nil list(width height3) rotation i 
+				  list(list("fingers" "integer" 1) list("w" "float" PMOS_size)))
+			height2 = height3 - 0.025;
+			dbCreatePath(cv "poly" list(width:height2 width1:height2) 0.05);
+			height2 = height3 - 0.1175;
+			height = (bit_no+1)*del_h - wl_posi[index];
+			width2 = width+PITCH_M2
+			dbCreatePath(cv "metal2" list(del_w*W:height width2:height) 0.07)
+			sprintf(str,"ML_%d<%d>",wl_array[index],bit_no);
+		        dbCreateLabel(cv "metal2" width2:height str "centerCenter" "R0" "roman" 0.0275)
+			height2 = height3 + 0.0675;
+			dbCreateInst(cv M2M1_cv nil list(width2 height2) "R0")
+			dbCreatePath(cv "metal2" list(width2:height-PITCH_M2/4 width2:height2) 0.07)
+			if(prec_flag == 0 then
+				index++;				
+			else    index = index + 2;
+			) 
+			prec_cnt = prec_cnt + 1;
+			total_prec = total_prec + 1;
+		    ); if_cond
+		) ; if_cond
+		if(prec_cnt == no_of_prec[level] then
+			level = level + 1;
+			prec_cnt = 0;
+			prec_flag = 0;
+			height = (bit_no+1)*del_h - wl_posi[index1] + PITCH_M2/2;
+			dbCreateRect(cv "poly" list(width1-0.0375:height width1+0.0375:height-PITCH_M2/2-0.05))
+			dbCreateInst(cv M1P_cv nil list(width1 height) "R0")
+			dbCreateInst(cv M2M1_cv nil list(width1 height) "R90")
+			dbCreateInst(cv M2M3_cvB nil list(width1 height) "R0")
+		)
+	) ; while_loop
+	) ;if_cond
+	if(flagV==0 then flagV = 1;
+	else flagV = 0)
+) ; for_loop

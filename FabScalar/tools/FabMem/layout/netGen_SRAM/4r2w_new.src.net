@@ -1,0 +1,52 @@
+************************************************************************
+* auCdl Netlist:
+* 
+* Library Name:  dual_bitline
+* Top Cell Name: 4r2w_new
+* View Name:     schematic
+* Netlisted on:  Oct  4 15:48:48 2009
+************************************************************************
+
+*.EQUATION
+*.SCALE METER
+*.MEGA
+.PARAM
+
+*.GLOBAL vdd!
++        gnd!
+
+*.PIN vdd!
+*+    gnd!
+
+************************************************************************
+* Library Name: dual_bitline
+* Cell Name:    4r2w_new
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT 4r2w_new R1_WL R2_WL R3_WL R4_WL
++ W1_WL W2_WL R1_BTL R1_BTLB R2_BTL R2_BTLB R3_BTL R3_BTLB R4_BTL R4_BTLB 
++ W1_BTL W1_BTLB W2_BTL W2_BTLB
+*.PININFO r1_wl:I r2_wl:I r3_wl:I r4_wl:I w1_btl:I w1_btlb:I w1_wl:I w2_btl:I 
+*.PININFO w2_btlb:I w2_wl:I r1_btl:B r1_btlb:B r2_btl:B r2_btlb:B r3_btl:B 
+*.PININFO r3_btlb:B r4_btl:B r4_btlb:B
+MM78 r1_btl r1_wl net105 gnd! NMOS_VTL W=90n L=50n
+MM79 r2_btl r2_wl q gnd! NMOS_VTL W=90n L=50n
+MM80 r4_btl r4_wl net105 gnd! NMOS_VTL W=90n L=50n
+MM81 r3_btl r3_wl q gnd! NMOS_VTL W=90n L=50n
+MM94 net90 qbar gnd! gnd! NMOS_VTL W=90n L=50n
+MM95 gnd! q net105 gnd! NMOS_VTL W=90n L=50n
+MM49 r3_btlb r3_wl qbar gnd! NMOS_VTL W=90n L=50n
+MM41 qbar w1_wl w1_btlb gnd! NMOS_VTL W=90n L=50n
+MM51 r4_btlb r4_wl net90 gnd! NMOS_VTL W=90n L=50n
+MM42 qbar w2_wl w2_btlb gnd! NMOS_VTL W=90n L=50n
+MM40 w1_btl w1_wl q gnd! NMOS_VTL W=90n L=50n
+MM39 w2_btl w2_wl q gnd! NMOS_VTL W=90n L=50n
+MM48 r2_btlb r2_wl qbar gnd! NMOS_VTL W=90n L=50n
+MM47 r1_btlb r1_wl net90 gnd! NMOS_VTL W=90n L=50n
+MM1 q qbar gnd! gnd! NMOS_VTL W=90n L=50n
+MM0 gnd! q qbar gnd! NMOS_VTL W=90n L=50n
+MM3 vdd! q qbar vdd! PMOS_VTL W=180n L=50n
+MM2 q qbar vdd! vdd! PMOS_VTL W=180n L=50n
+.ENDS
+

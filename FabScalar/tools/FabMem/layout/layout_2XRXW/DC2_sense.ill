@@ -1,0 +1,284 @@
+     ;; Script to generate just sense amp without column degreee 
+     delH_sense=1.21
+     delW_sense=0.56
+     sense_cv = dbOpenCellViewByType("dual_bitline" "sense_amp" "layout" "maskLayout" "r")
+     height=max_height+(temp-1)*PITCH_M2+0.465
+     temp=floor(2*PITCH_M2*(Rp+Wp)/delW_col)
+     if(temp<Rp then temp=Rp/2)	
+     for(bit_no 0 W/2-1
+     	width = bit_no*del_w
+     	height1=height-0.035
+     	height_cnt=1
+     	height_flag=0
+     	btl_no=0
+     	for(i 1 temp     
+            while((btl_array[btl_no]>2*Rp || (btl_array[btl_no]>temp && btl_array[btl_no]<=Rp) || btl_array[btl_no]>Rp+temp)
+                     btl_no++)		
+            if(i==1 then width=bit_no*2*del_w+btl_posi[btl_no])
+	    width1=bit_no*2*del_w+btl_posi[btl_no]
+            dbCreateInst(cv sense_cv nil list(width height) "R0")
+	    if(i==1 then
+	    	dbCreateInst(cv M2M1_cv nil list(width height1) "R0") ; for btlb connection
+	    else
+	    	dbCreateInst(cv M2M1_cv1 nil list(width height1) "R90")) ; for btlb connection
+	    dbCreateInst(cv M2M1_cv nil list(width+0.1875 height-0.465-PITCH_M2*(i-1)) "R0") ; for SE connection
+            dbCreatePath(cv "metal1" list(width+0.1875:height-0.455 width+0.1875:height-0.465-(i-1)*PITCH_M2) 0.065)
+            if(height1>height+1.00 then
+                dbCreatePath(cv "metal1" list(width:height1 width:height+0.5) 0.065) );if
+	    dbCreateInst(cv M2M3_cv nil list(width1 height1) "R90")    
+            dbCreatePath(cv "metal3" list(width1:height1+0.035 width1:height-3*temp*PITCH_M2-0.465) 0.07)
+            if(width!=width1 then
+	        dbCreatePath(cv "metal2" list(width:height1 width1:height1) 0.07));if
+            k=0
+            if(btl_array[btl_no]>Rp then
+	       while(btl_array[k]!=btl_array[btl_no]-Rp 
+	             k++)
+            else
+	       while(btl_array[k]!=btl_array[btl_no]+Rp 
+	            k++)
+            )
+            m=0
+            while((btl_array[m]>2*Rp || (btl_array[m]>temp && btl_array[m]<=Rp) || btl_array[m]>Rp+temp)
+                     m++)		
+	    width2=bit_no*2*del_w+btl_posi[k]
+            btl_no++
+            if((width1>width+0.165 || width2<width+0.165) then 
+	        if(height_cnt==5 then 
+	        height1=height1+PITCH_M2*2
+                height_cnt=0
+	        height_flag=1
+                else
+	          height1 = height1+PITCH_M2
+	          if(height_flag==0 then height_cnt++));if if
+            );if
+
+	    if(i==1 then
+	        dbCreateInst(cv M2M1_cv nil list(width+0.375 height1) "R0")  	
+	    else
+	        dbCreateInst(cv M2M1_cv1 nil list(width+0.375 height1) "R90"))  	
+            if((height1>height+1.000 || height1<height) then
+                dbCreatePath(cv "metal1" list(width+0.375:height1 width+0.375:height+0.5) 0.065) );if
+
+
+	    dbCreateInst(cv M2M3_cv nil list(width2 height1) "R90")    
+            dbCreatePath(cv "metal3" list(width2:height1+0.035 width2:height-2*temp*PITCH_M2-0.465) 0.07)
+
+            if(!(width+0.375==width2 && width==width1) then
+	        dbCreatePath(cv "metal2" list(width+0.375:height1 width2:height1) 0.07)
+	        if(height_cnt==5 then height1=height1+PITCH_M2*2
+                height_cnt=0
+	        height_flag=1
+                else
+	          height1 = height1+PITCH_M2
+	          if(height_flag==0 then height_cnt++));if if
+	    );if
+
+	    width=width+delW_sense
+	    width1=width1+delW_col
+
+            if(height1>height+delH_sense then max_height=height1
+            else max_height=height+delH_sense)
+            if(bit_no==0 then if(i==temp then
+               dbCreateRect(cv "pwell" list(-0.1:height-0.465-(temp-1)*PITCH_M2 del_w*W:height+0.605)) 
+               dbCreateInst(cv PTAP_cv nil list(-0.1 height-0.035-PITCH_M2) "R0")
+               dbCreateInst(cv M2M1_cv nil list(-0.1 height-0.035-PITCH_M2) "R90")
+               dbCreateInst(cv M2M3_cvB nil list(-0.1 height-0.035-PITCH_M2) "R0")
+	       dbCreateInst(cv M2M1_cv nil list(del_w*W+3*PITCH_M2 height-0.035-PITCH_M2) "R90")
+               dbCreateInst(cv M2M3_cvB nil list(del_w*W+3*PITCH_M2 height-0.035-PITCH_M2) "R0")
+
+               dbCreateInst(cv NTAP_cv nil list(W*del_w+PITCH_M2-0.1 height+0.005+5*PITCH_M2) "R0")
+               dbCreateInst(cv M2M1_cv nil list(W*del_w+PITCH_M2-0.065 height+0.005+5*PITCH_M2) "R90")
+               dbCreateInst(cv M2M3_cvB nil list(W*del_w+PITCH_M2 height+0.005+5*PITCH_M2) "R0")
+               ; NWELL PWELLfor sense amp level 1
+
+               dbCreatePath(cv "metal2" list(-PITCH_M2:height-0.035-PITCH_M2 del_w*W+3*PITCH_M2:height-0.035-PITCH_M2) 0.07)
+               ;GND line
+	       dbCreatePath(cv "metal2" list(0.00:height-0.035+5*PITCH_M2 del_w*W+PITCH_M2:height-0.035+5*PITCH_M2) 0.07)
+	       ;VDD line
+
+               ;NTAP PTAP PLACEMENT
+               dbCreatePath(cv "metal2" list(0.00:height-0.465-(temp-1)*PITCH_M2 del_w*W:height-0.465-(temp-1)*PITCH_M2) 0.07)
+               k=0
+               if(btl_array[btl_no-1]>Rp then
+	       	  while(btl_array[k]!=btl_array[btl_no-1]-Rp 
+	             k++)
+               else
+	          while(btl_array[k]!=btl_array[btl_no-1]+Rp 
+	             k++)
+               )
+               sprintf(str,"SE%d",btl_array[k])
+               dbCreateLabel(cv "metal2" PITCH_M2:height-0.465-(temp-1)*PITCH_M2 str "centerCenter" "R0" "roman" 0.0275)
+            else
+               dbCreatePath(cv "metal2" list(0.00:height-0.465-(i-1)*PITCH_M2 
+                                             del_w*W:height-0.465-(i-1)*PITCH_M2) 0.07)
+               k=0
+               if(btl_array[btl_no-1]>Rp then
+               	  while(btl_array[k]!=btl_array[btl_no-1]-Rp k++)
+               else
+	          while(btl_array[k]!=btl_array[btl_no-1]+Rp k++)
+               )
+               sprintf(str,"SE%d",btl_array[k]);
+               dbCreateLabel(cv "metal2" PITCH_M2:height-0.465-(i-1)*PITCH_M2 str "centerCenter" "R0" "roman" 0.0275)
+           ));;if
+         );;for
+        
+         temp=floor(2*PITCH_M2*(Rp+Wp)/delW_col)
+         if(temp<Rp then temp=Rp/2)
+
+         ;; Output line from the sense amp
+         btl_no=0
+         for(i 1 temp
+             while((btl_array[btl_no]>2*Rp || (btl_array[btl_no]>temp && btl_array[btl_no]<=Rp) || btl_array[btl_no]>Rp+temp)
+                  btl_no++)		
+             if(i==1 then width=bit_no*2*del_w+btl_posi[btl_no]+0.375)
+             k=0
+             if(btl_array[btl_no]>Rp then
+	          while(btl_array[k]!=btl_array[btl_no]-Rp 
+	          k++)
+             else
+	         while(btl_array[k]!=btl_array[btl_no]+Rp 
+	         k++)
+             )
+	     width1=bit_no*2*del_w+btl_posi[k]
+	     dbCreateInst(cv M2M1_cv1 nil list(width height1) "R90")
+	     if(temp>1 then	 dbCreateInst(cv M2M3_cv nil list(width1 height1) "R90")
+             	  dbCreatePath(cv "metal3" list(width1:height1 width1:max_height+temp*PITCH_M2) 0.07)
+             else	 dbCreateInst(cv M2M3_cv nil list(width1 height1+0.015) "R90")
+         	  dbCreatePath(cv "metal3" list(width1:height1-PITCH_M2 width1:max_height+temp*PITCH_M2) 0.07)
+	     ) ;;if
+	     dbCreatePath(cv "metal2" list(width:height1 width1:height1) 0.07)
+             if((height1>height+1.000 || height1<height) then
+             	dbCreatePath(cv "metal1" list(width:height1 width:height+0.5) 0.065) );if
+         	width=width+delW_sense
+	     	if(height_cnt==5 then height1=height1+PITCH_M2*2
+             	    height_cnt=0
+	     	    height_flag=1
+                else
+	            height1 = height1+PITCH_M2
+	            if(height_flag==0 then height_cnt++)
+                );if if
+             if(height1>height+delH_sense then max_height=height1
+             else max_height=height+delH_sense)
+             btl_no++
+          ) ;; for
+       )  ;; for top level for loop
+       dbCreateRect(cv "nwell" list(-0.1:max_height del_w*W:height+0.605)) 
+     ;; Sense amp at Bottom Part
+     height=maxneg_height-(Rp-temp)*PITCH_M2-0.465
+     for(bit_no 0 W/2-1
+         width = bit_no*del_w
+         height1=height+0.035
+         height_cnt=1
+         height_flag=0
+         btl_no=0
+     	 for(i 1 Rp-temp     
+	     while((btl_array[btl_no]>2*Rp || (btl_array[btl_no]<=temp+Rp && btl_array[btl_no]>Rp) || btl_array[btl_no]<=temp)
+                  btl_no++)
+             if(i==1 then width=bit_no*2*del_w+btl_posi[btl_no]+0.1875
+		      width1=bit_no*2*del_w+0.115+0.1875)
+             dbCreateInst(cv sense_cv nil list(width height) "MX")
+             if(i==1 then dbCreateInst(cv M2M1_cv nil list(width height1) "R0") ; for btlb connection
+	     else dbCreateInst(cv M2M1_cv1 nil list(width height1) "R90")) ; for btlb connection
+	     dbCreateInst(cv M2M1_cv nil list(width+0.1875 height+0.465+PITCH_M2*(i-1)) "R0") ; for SE connection
+             dbCreatePath(cv "metal1" list(width+0.1875:height+0.455 width+0.1875:height+0.465+(i-1)*PITCH_M2) 0.065)
+             if(height1<height-1.00 then
+                 dbCreatePath(cv "metal1" list(width:height1 width:height-0.5) 0.065) );if
+	     dbCreateInst(cv M2M3_cv nil list(width1 height1) "R90")    
+             dbCreatePath(cv "metal3" list(width1:height1-0.035 width1:height+temp*PITCH_M2+0.465) 0.07)
+             if(width!=width1 then
+	     	dbCreatePath(cv "metal2" list(width:height1 width1:height1) 0.07));if
+             k=0
+             if(btl_array[btl_no]>Rp then
+	         while(btl_array[k]!=btl_array[btl_no]-Rp 
+	          k++)
+             else
+	         while(btl_array[k]!=btl_array[btl_no]+Rp 
+	          k++)
+             )
+         m=0
+	 while((btl_array[m]>2*Rp || (btl_array[m]<=temp+Rp && btl_array[m]>Rp) || btl_array[m]<=temp)
+                  m++)
+	 btl_cnt=0
+         btl_tmp=0
+         while(btl_tmp<k if(btl_array[btl_tmp]>2*Rp then btl_cnt++) btl_tmp++)
+	 width2=bit_no*2*del_w+0.115+0.1875+(k-Rp-btl_cnt)*delW_col
+         btl_no++
+         if((width1>width+0.165 || width2<width+0.165) then 
+	     if(height_cnt==5 then 
+	     height1=height1-PITCH_M2*2
+             height_cnt=0
+	     height_flag=1
+             else
+	       height1 = height1-PITCH_M2
+	       if(height_flag==0 then height_cnt++));if if
+         );if
+         if(i==1 then dbCreateInst(cv M2M1_cv nil list(width+0.375 height1) "R0")  	
+         else dbCreateInst(cv M2M1_cv1 nil list(width+0.375 height1) "R90"))  	
+         if((height1<height-1.000 || height1>height) then
+             dbCreatePath(cv "metal1" list(width+0.375:height1 width+0.375:height-0.5) 0.065) );if
+	 dbCreateInst(cv M2M3_cv nil list(width2 height1) "R90")    
+         dbCreatePath(cv "metal3" list(width2:height1-0.035 width2:height+(Rp-temp)*PITCH_M2+0.465) 0.07)
+         if(!(width+0.375==width2 && width==width1) then
+	     dbCreatePath(cv "metal2" list(width+0.375:height1 width2:height1) 0.07)
+	     if(height_cnt==5 then height1=height1-PITCH_M2*2
+             height_cnt=0
+	     height_flag=1
+             else
+	       height1 = height1-PITCH_M2
+	       if(height_flag==0 then height_cnt++));if if
+	 );if
+
+	 width=width+delW_sense
+	 width1=width1+delW_col
+
+         if(height1+PITCH_M2<height-delH_sense then maxneg_height=height1-0.5*PITCH_M2
+         else maxneg_height=height-delH_sense-1.5*PITCH_M2)
+         if((bit_no==0 && i==1) then
+            dbCreateRect(cv "pwell" list(0.00:height+0.465+temp*PITCH_M2 del_w*W:height-0.605)) 
+            dbCreateRect(cv "nwell" list(0.00:maxneg_height del_w*W:height-0.605)) 
+            ; NWELL PWELLfor sense amp level 1
+
+            dbCreatePath(cv "metal2" list(0.00:height+0.035+PITCH_M2 del_w*W:height+0.035+PITCH_M2) 0.07)
+	    dbCreatePath(cv "metal1" list(del_w*W:height+0.035+PITCH_M2 del_w*W:-3*PITCH_M2) 0.065) 
+            ;GND line
+	    dbCreatePath(cv "metal2" list(-4*PITCH_M2:-3*PITCH_M2-(Rp-temp+1)*PITCH_M2-delH_buff2
+					  -4*PITCH_M2:height+0.035-5*PITCH_M2 
+					  del_w*W+4*PITCH_M2:height+0.035-5*PITCH_M2) 0.07)
+	    ;VDD line
+            dbCreateInst(cv PTAP_cv nil list(W*del_w height+0.035+PITCH_M2) "R0")
+            dbCreateInst(cv M2M1_cv1 nil list(W*del_w height+0.035+PITCH_M2) "R90")
+	    dbCreateInst(cv NTAP_cv nil list(del_w*W height-0.705) "R0")	 
+            dbCreateInst(cv M2M1_cv1 nil list(W*del_w height-0.665) "R90")
+            ;NTAP PTAP PLACEMENT
+            dbCreatePath(cv "metal2" list(0.00:height+0.465 del_w*W:height+0.465) 0.07)
+            k=0
+            if(btl_array[btl_no-1]>Rp then
+	       while(btl_array[k]!=btl_array[btl_no-1]-Rp 
+	             k++)
+            else
+	       while(btl_array[k]!=btl_array[btl_no-1]+Rp 
+	             k++)
+              )
+            sprintf(str,"SE%d",btl_array[k]);
+            dbCreateLabel(cv "metal2" PITCH_M2:height+0.465 str "centerCenter" "R0" "roman" 0.0275)
+         else
+               dbCreatePath(cv "metal2" list(0.00:height+0.465+(i-1)*PITCH_M2 
+                                             del_w*W:height+0.465+(i-1)*PITCH_M2) 0.07)
+               k=0
+               if(btl_array[btl_no-1]>Rp then
+               while(btl_array[k]!=btl_array[btl_no-1]-Rp k++)
+               else
+	       while(btl_array[k]!=btl_array[btl_no-1]+Rp k++)
+                 )
+               sprintf(str,"SE%d",btl_array[k]);
+               dbCreateLabel(cv "metal2" PITCH_M2:height+0.465+(i-1)*PITCH_M2 str "centerCenter" "R0" "roman" 0.0275)
+           ) ;if
+
+          ) ;for
+        ) ;for
+
+   dbCreatePath(cv "metal2" list(del_w*W+4*PITCH_M2:maxneg_height del_w*W+4*PITCH_M2:-2*PITCH_M2
+			      del_w*W+2.7-2.365:-2*PITCH_M2 del_w*W+2.7-2.365:0.00) 0.07)
+   dbClose(sense_cv)	
+
+

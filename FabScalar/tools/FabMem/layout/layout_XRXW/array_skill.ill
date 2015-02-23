@@ -1,0 +1,385 @@
+/********************* Full layout generation *********************/
+
+sprintf(str,"mem_%d_%d_%d_%d",D,W,Rp,Wp)
+
+D=D/DC
+W=W*DC
+max_height=del_h*D
+maxneg_height=0.00
+min_heihgt=0.00
+cv = dbOpenCellViewByType("Skill_test" str "layout" "maskLayout" "w")
+sprintf(str,"%dr%dw_new",Rp,Wp)
+bit_cv = dbOpenCellViewByType("dual_bitline" str "layout" "maskLayout" "r")
+prec1_cv = dbOpenCellViewByType("dual_bitline" "prec1" "layout" "maskLayout" "r")
+prec2_cv = dbOpenCellViewByType("dual_bitline" "prec2" "layout" "maskLayout" "r")
+prec3_cv = dbOpenCellViewByType("dual_bitline" "prec3" "layout" "maskLayout" "r")
+prec4_cv = dbOpenCellViewByType("dual_bitline" "prec4" "layout" "maskLayout" "r")
+buff3_cv = dbOpenCellViewByType("dual_bitline" "buff" "layout" "maskLayout" "r")
+buff2_cv = dbOpenCellViewByType("dual_bitline" "buff2" "layout" "maskLayout" "r")
+M4M3_cv = dbOpenCellViewByType("NCSU_TechLib_FreePDK45" "M4_M3_via" "via" "maskLayout" "r")
+M2M3_cvB = dbOpenCellViewByType("NCSU_TechLib_FreePDK45" "M3_M2_viaB" "via" "maskLayout" "r")
+M2M3_cv = dbOpenCellViewByType("NCSU_TechLib_FreePDK45" "M3_M2_via" "via" "maskLayout" "r")
+M2M1_cv = dbOpenCellViewByType("NCSU_TechLib_FreePDK45" "M2_M1_viaB" "via" "maskLayout" "r")
+M2M1_cv1 = dbOpenCellViewByType("NCSU_TechLib_FreePDK45" "M2_M1_via" "via" "maskLayout" "r")
+M1P_cv = dbOpenCellViewByType("dual_bitline" "M1_POLY" "layout" "maskLayout" "r")
+M1N_cv = dbOpenCellViewByType("dual_bitline" "M1_N" "layout" "maskLayout" "r")
+NTAP_cv = dbOpenCellViewByType("dual_bitline" "NTAP" "layout" "maskLayout" "r")
+PTAP_cv = dbOpenCellViewByType("dual_bitline" "PTAP" "layout" "maskLayout" "r")
+nm_cv = dbOpenCellViewByType("NCSU_TechLib_FreePDK45" "nmos_vtl" "layout" "maskLayout" "r")
+pm_cv = dbOpenCellViewByType("NCSU_TechLib_FreePDK45" "pmos_vtl" "layout" "maskLayout" "r")
+winv_cv = dbOpenCellViewByType("dual_bitline" "inverter" "layout" "maskLayout" "r")
+invfing2_cv=dbOpenCellViewByType("dual_bitline" "inv_finger2" "layout" "maskLayout" "r")
+
+declare(prec_array[4])
+prec_array[0] = prec1_cv
+prec_array[1] = prec2_cv
+prec_array[2] = prec3_cv
+prec_array[3] = prec4_cv
+
+PITCH_M2 = 0.14
+PITCH_M1 = 0.13
+flag = 0 
+height=0.0 width=0.0
+instance_no = 0
+
+if(D<=4 then pm_dw=0.18
+else if(D<=32 then pm_dw=0.36
+else pm_dw = 0.72 ; PMOS W size in NAND decoder
+))
+
+delW_wdata=0.75
+delH_wdata=1.7575
+delW_col=0.715
+delH_buff2=0.965
+delW_buff2=0.98
+
+for( i 1 D
+ width = 0.0 
+for( j 1 W 
+ ;if((i<=2 || j==1) then
+ if( flag==0 then 
+ 	dbCreateInst(cv bit_cv nil list(width height) "R0")
+ else        dbCreateInst(cv bit_cv nil list(width height) "MX"))
+width = width + del_w 
+ instance_no++ );)
+ if( flag==0 then 
+ height = height + del_h + del_h 
+ flag = 1
+ else flag = 0 ))
+
+declare(btl_array[(Rp+Wp)*2])
+declare(btl_posi[(Rp+Wp)*2])
+declare(btl_layer[(Rp+Wp)*2])
+declare(wl_array[(Rp+Wp)])
+declare(wl_posi[(Rp+Wp)])
+
+bit_label = bit_cv~>shapes~>theLabel
+bit_bbox = bit_cv~>shapes~>bBox
+bit_layer= bit_cv~>shapes~>layer
+len = length(bit_label)
+j=0
+k=0
+
+for( i 1 len
+    if( (nth(i bit_label)!= nil &&  nth(i bit_label)!="gnd!" && nth(i bit_label)!="Vdd!") then
+str = nth(i bit_label)
+sscanf(str,"%c%d_%s",r_or_w,num,wl_btl)
+if( r_or_w == 'r then
+   if(wl_btl == "btl" then
+	btl_array[j] = num 
+	btl_posi[j] = (nth(0 nth( 0 nth(i bit_bbox))) + nth(0 nth( 1 nth(i bit_bbox))))/2
+        btl_layer[j]=nth(i bit_layer)
+	j++
+   else if(wl_btl == "btlb" then
+	btl_array[j] = num+Rp 
+	btl_posi[j] = (nth(0 nth( 0 nth(i bit_bbox))) + nth(0 nth( 1 nth(i bit_bbox))))/2
+        btl_layer[j]=nth(i bit_layer)
+	j++
+   else wl_posi[k]=(nth(1 nth( 0 nth(i bit_bbox))) + nth(1 nth( 1 nth(i bit_bbox))))/2
+	wl_array[k] = num
+	k++
+   ));if if
+else if(wl_btl == "btl" then
+	btl_array[j] = num+2*Rp 
+	btl_posi[j] = (nth(0 nth( 0 nth(i bit_bbox))) + nth(0 nth( 1 nth(i bit_bbox))))/2
+        btl_layer[j]=nth(i bit_layer)
+	j++
+     else if(wl_btl == "btlb" then
+	btl_array[j] = num+2*Rp+Wp 
+	btl_posi[j] = (nth(0 nth( 0 nth(i bit_bbox))) + nth(0 nth( 1 nth(i bit_bbox))))/2
+        btl_layer[j]=nth(i bit_layer)
+	j++
+     else
+	wl_posi[k]=(nth(1 nth( 0 nth(i bit_bbox))) + nth(1 nth( 1 nth(i bit_bbox))))/2
+	wl_array[k] = num+Rp
+	k++
+));;if if
+); if
+);if
+);for
+
+;BTL array sorting
+for(j 1 (Rp+Wp)*2
+for(i 1 (Rp+Wp)*2-1
+if(btl_posi[i] < btl_posi[i-1] then
+temp1 = btl_posi[i] 
+btl_posi[i] = btl_posi[i-1]
+btl_posi[i-1] = temp1
+temp2 = btl_array[i] 
+btl_array[i] = btl_array[i-1]
+btl_array[i-1] = temp2
+temp3 = btl_layer[i] 
+btl_layer[i] = btl_layer[i-1]
+btl_layer[i-1] = temp3
+)))
+
+;WL array sorting
+for(j 1 (Rp+Wp)
+for(i 1 (Rp+Wp)-1
+if(wl_posi[i] < wl_posi[i-1] then
+temp1 = wl_posi[i] 
+wl_posi[i] = wl_posi[i-1]
+wl_posi[i-1] = temp1
+temp2 = wl_array[i] 
+wl_array[i] = wl_array[i-1]
+wl_array[i-1] = temp2)))
+
+/************************ M3M4_cv placement for btl on metal4 ***********************/
+for(j 0 W-1
+    for(i 0 2*(Rp+Wp)-1
+        if(btl_layer[i]==17 then
+	   dbCreateInst(cv M4M3_cv nil list(j*del_w+btl_posi[i] del_h*D) "R90")
+	   dbCreatePath(cv "metal3" list(j*del_w+btl_posi[i]:del_h*D j*del_w+btl_posi[i]:del_h*D-PITCH_M2) 0.07)
+	   dbCreateInst(cv M4M3_cv nil list(j*del_w+btl_posi[i] 0.00) "R90")
+	   dbCreatePath(cv "metal3" list(j*del_w+btl_posi[i]:0.00 j*del_w+btl_posi[i]:PITCH_M2) 0.07)
+	  )       
+       )
+   )
+
+load("./layout_XRXW/precharge.ill")
+
+;VIA placement for the WL to buffer connection
+
+flagV=0
+flagH=0
+for(j 1 D
+flagH=0
+     if(flagV==0 then
+	for(i 1 Rp+Wp
+	   height = del_h*(j-1) + wl_posi[i-1]
+	   if(flagH==0 then width = -0.11 flagH = 1
+	   else width = del_w*W + 0.11
+	   flagH = 0)
+	   dbCreateInst(cv M2M3_cvB nil list(width height) "R90") )
+	   flagV=1
+     else
+	for(i 1 Rp+Wp
+     	    height = del_h*j - wl_posi[i-1] /*wl_posi[Rp+Wp-i] */
+	    if(flagH==0 then width = -0.11 flagH = 1
+	    else width = del_w*W + 0.11
+	    flagH = 0)
+	    dbCreateInst(cv M2M3_cvB nil list(width height) "R90") )
+	    flagV=0) 
+)
+
+
+
+/********************** Buffer CKT **************************/
+delW_buff = 2.375+0.115
+delH_buff = 1.155
+flagV=0
+flagH=0
+
+b_on_right = round((Rp+Wp)/2)
+temp = mod(Rp+Wp 2)
+if(temp==1 then
+      b_on_left = b_on_right + 1
+else  b_on_left = b_on_right ) ; if
+
+declare(well_left[b_on_left])
+declare(well_right[b_on_right])
+
+for(i 0 b_on_left-1
+    well_left[i]=-0.4675)
+for(i 0 b_on_right-1
+    well_right[i]=-0.4675)
+
+for(j 1 D
+     flagH=0
+     if(flagV==0 then
+	for(i 1 Rp+Wp
+	   height = del_h*(j-1) + wl_posi[i-1]
+	   if(flagH==0 then 
+		width = -2.7 - round((i-1)/2)*delW_buff
+		dbCreateInst(cv buff3_cv nil list(width height) "R0")
+		dbCreateRect(cv "nwell" list(width+0.0725:height-0.6875 width+0.9275:well_left[(i-1)/2]+0.4675))
+		dbCreateRect(cv "pwell" list(width+0.9275:height-0.6875 width+2.5625:well_left[(i-1)/2]+0.4675))
+		well_left[(i-1)/2]=height
+		flagH = 1
+	   else 
+		width = del_w*W + 2.7 + round((i-2)/2)*delW_buff
+		dbCreateInst(cv buff3_cv nil list(width height) "MY")
+		dbCreateRect(cv "nwell" list(width-0.0725:height-0.6875 width-0.9275:well_right[(i-2)/2]+0.4675))
+		dbCreateRect(cv "pwell" list(width-0.9275:height-0.6875 width-2.5625:well_right[(i-2)/2]+0.4675))
+		well_right[(i-2)/2]=height
+		flagH = 0)
+	 )
+	   flagV=1
+     else
+	for(i 1 Rp+Wp
+	    if(flagH==0 then                 
+	        if(mod(Rp+Wp 2)==0 then 
+		   height=del_h*j-wl_posi[Rp+Wp-i-1]
+		else 	    height = del_h*j - wl_posi[Rp+Wp-i])
+		width = -2.7 - round((i-1)/2)*delW_buff
+		dbCreateInst(cv buff3_cv nil list(width height) "R0")
+		dbCreateRect(cv "nwell" list(width+0.0725:height-0.6875 width+0.9275:well_left[(i-1)/2]+0.4675))
+		dbCreateRect(cv "pwell" list(width+0.9275:height-0.6875 width+2.5625:well_left[(i-1)/2]+0.4675))
+		well_left[(i-1)/2]=height
+	        flagH = 1
+	    else 
+		if(Rp==1 then height = del_h*j - wl_posi[Rp+Wp-i+1]+0.24
+	        else if(mod(Rp+Wp 2)==0 then height = del_h*j - wl_posi[Rp+Wp-i+1];-PITCH_M2
+		else 	    height = del_h*j - wl_posi[Rp+Wp-i]))
+		width = del_w*W + 2.7 + round((i-1)/2)*delW_buff
+		dbCreateInst(cv buff3_cv nil list(width height) "MY")
+		dbCreateRect(cv "nwell" list(width-0.0725:height-0.6875 width-0.9275:well_right[(i-2)/2]+0.4675))
+		dbCreateRect(cv "pwell" list(width-0.9275:height-0.6875 width-2.5625:well_right[(i-2)/2]+0.4675))
+		well_right[(i-2)/2]=height
+		if(Rp==1 then
+		   dbCreatePath(cv "metal3" list(width-1.78:height width-1.78:height-0.24) 0.07)
+		   dbCreatePath(cv "metal3" list(width:height width:height-0.24) 0.07)
+		  )
+		flagH = 0)
+)
+	    flagV=0) 
+)
+
+/* PWElL placement between array and buffer to avoid DRC */
+dbCreateRect(cv "pwell" list(-0.1375:0 -0.1375+0.4:D*del_h))
+dbCreateRect(cv "pwell" list(-2.7+delW_buff+0.0725:wl_posi[0]-0.6875 0.00:wl_posi[0]))
+dbCreateRect(cv "pwell" list(W*del_w+0.1375:0.00 W*del_w+0.1375-0.4:D*del_h))
+dbCreateRect(cv "pwell" list(2.7-delW_buff-0.0725+del_w*W:wl_posi[1]-0.6875 del_w*W:wl_posi[1]))
+
+loadi("./layout_XRXW/decode_left.ill")
+loadi("./layout_XRXW/decode_right.ill")
+
+
+/*********** GND & VDD wires throughout the buffers *********/
+for(i 0 b_on_left-1
+	dbCreatePath(cv "metal2" list(-2.7-delW_buff*i+1.1875:-3.5*PITCH_M2 -2.7-delW_buff*i+1.1875:del_h*D) 0.07)
+	dbCreatePath(cv "metal2" list(-2.7-delW_buff*i+2.365:0.00 -2.7-delW_buff*i+2.365:del_h*D+2*PITCH_M2) 0.07)    
+	dbCreateInst(cv M2M1_cv nil list(-2.7-delW_buff*i+2.365 del_h*D+2*PITCH_M2) "R0")
+	dbCreateInst(cv M2M1_cv1 nil list(-2.7-delW_buff*i+1.1875 -3.5*PITCH_M2) "R0")
+  )
+
+for(i 0 b_on_right-1
+	dbCreatePath(cv "metal2" list(del_w*W+2.7+delW_buff*i-1.1875:-3*PITCH_M2 
+                                     del_w*W+2.7+delW_buff*i-1.1875:del_h*D) 0.07)
+	dbCreateInst(cv M2M1_cv nil list(del_w*W+2.7+delW_buff*i-1.1875 -3*PITCH_M2 ) "R0")
+	dbCreatePath(cv "metal2" list(del_w*W+2.7+delW_buff*i-2.365:0.00 
+				      del_w*W+2.7+delW_buff*i-2.365:del_h*D+2*PITCH_M2) 0.07)    
+  )
+
+
+/*********Column Decoder *********/
+if(DC>1 then 
+        loadi("./layout_XRXW/column.ill") 
+        if(DC==2 then loadi("./layout_XRXW/wdata_dc2.ill")
+        else loadi("./layout_XRXW/wdata_dc4.ill"))	
+else	loadi("./layout_XRXW/direct_sense.ill") 
+loadi("./layout_XRXW/wdata_nodc1.ill")
+)
+
+dbCreateInst(cv M2M1_cv nil list(del_w*W+4*PITCH_M2 del_h*D) "R0")
+dbCreateInst(cv M2M3_cvB nil list(del_w*W+4*PITCH_M2 del_h*D) "R90")
+dbCreatePath(cv "metal1" list(del_w*W:del_h*D del_w*W+4*PITCH_M2:del_h*D) 0.065)
+
+/****************** Output Inverter Placement ****************/
+loadi("./layout_XRXW/output.ill")
+
+dbCreatePath(cv "metal3" list(-PITCH_M2:del_h*D -PITCH_M2:max_height) 0.07);GND
+dbCreatePath(cv "metal3" list(-2*PITCH_M2:del_h*D -2*PITCH_M2:max_height) 0.07);CLK
+dbCreatePath(cv "metal3" list(-3*PITCH_M2:del_h*D -3*PITCH_M2:max_height) 0.07);VDD
+
+dbCreatePath(cv "metal3" list(del_w*W+PITCH_M2:del_h*D del_w*W+PITCH_M2:max_height) 0.07);VDD
+dbCreatePath(cv "metal3" list(del_w*W+2*PITCH_M2:del_h*D del_w*W+2*PITCH_M2:max_height) 0.07);CLK
+dbCreatePath(cv "metal3" list(del_w*W+4*PITCH_M2:del_h*D
+del_w*W+3*PITCH_M2:del_h*D del_w*W+3*PITCH_M2:max_height) 0.07);GND
+
+if(DC==1 then
+dbCreatePath(cv "metal3" list(-PITCH_M2:0.00 -PITCH_M2:maxneg_height) 0.07);GND
+dbCreatePath(cv "metal3" list(-2*PITCH_M2:0.00 -2*PITCH_M2:maxneg_height) 0.07);CLK
+dbCreatePath(cv "metal3" list(-3*PITCH_M2:0.00 -3*PITCH_M2:maxneg_height) 0.07);VDD
+
+dbCreateInst(cv M2M3_cv nil list(del_w*W+2.7-2.365 PITCH_M2) "R0")
+dbCreatePath(cv "metal3" list(del_w*W+2.7-2.365:PITCH_M2 del_w*W+PITCH_M2:PITCH_M2 del_w*W+PITCH_M2:maxneg_height) 0.07);VDD
+dbCreatePath(cv "metal3" list(del_w*W+2*PITCH_M2:0.00 del_w*W+2*PITCH_M2:maxneg_height) 0.07);GND
+)
+/********** VDD and GND of array *******************/
+dbCreatePath(cv "metal1" list(-PITCH_M2:del_h-PITCH_M1/4 -PITCH_M2:del_h*D+2*PITCH_M2+PITCH_M1/4) 0.065)
+dbCreatePath(cv "metal1" list(W*del_w+PITCH_M1:-PITCH_M1/4 W*del_w+PITCH_M1:del_h*D+PITCH_M1/4) 0.065)
+
+/***************CLK routing*****************/
+width=2.7+(b_on_left-1)*delW_buff+b_on_left*((row_bits+1)*2*PITCH_M2+0.46)
+dbCreatePath(cv "metal3" list(-width:del_h*D+3*PITCH_M2 -4*PITCH_M2:del_h*D+3*PITCH_M2) 0.07)
+dbCreatePath(cv "metal2" list(-4*PITCH_M2:del_h*D+3*PITCH_M2 -2*PITCH_M2:del_h*D+3*PITCH_M2) 0.07)
+dbCreateInst(cv M2M3_cv nil list(-4*PITCH_M2 del_h*D+3*PITCH_M2) "R90")
+dbCreateLabel(cv "metal1" -5*PITCH_M2:del_h*D+2*PITCH_M2 "vdd!" "centerCenter" "R0" "roman" 0.0275)
+dbCreateLabel(cv "metal1" 4*PITCH_M2:0.000 "gnd!" "centerCenter" "R0" "roman" 0.0275)
+dbCreateLabel(cv "metal3" -5*PITCH_M2:del_h*D+3*PITCH_M2 "clk" "centerCenter" "R0" "roman" 0.0275)
+
+/* VDD and GND and WL and BTL lines in case of critical path simulation only
+   To avoid:
+   *error* Memory request exceeds the current available space
+*/
+flagV=0
+for(i 0 D-1
+    if(flagV==1 then
+    dbCreatePath(cv "metal1" list(-PITCH_M2:i*del_h W*del_w:i*del_h) 0.065) ;vdd
+    flagV=0
+    else
+    dbCreatePath(cv "metal1" list(0:i*del_h W*del_w+PITCH_M2:i*del_h) 0.065) ;gnd
+    flagV=1
+    )
+)
+
+/*************** WL through the mem-array *************
+flagV=0
+for(i 0 D-1
+   for(j 0 Rp+Wp-1
+            if(flagV==0 then
+	    dbCreatePath(cv "metal2" list(-PITCH_M2:i*del_h+wl_posi[j] W*del_w+PITCH_M2:i*del_h+wl_posi[j]) 0.07)
+            else
+	    dbCreatePath(cv "metal2" list(-PITCH_M2:(i+1)*del_h-wl_posi[j] W*del_w+PITCH_M2:(i+1)*del_h-wl_posi[j]) 0.07)) 
+      )
+       if(flagV==0 then flagV=1
+       else flagV=0)
+   )
+
+*************** BTL through the mem-array *************
+for(i 0 W-1
+   for(j 0 2*(Rp+Wp)-1
+       dbCreatePath(cv "metal3" list(i*del_w+btl_posi[j]:-PITCH_M2 i*del_w+btl_posi[j]:D*del_h+PITCH_M2) 0.07)
+      )
+    )
+*/
+dbSave(cv)
+dbClose(bit_cv)
+dbClose(buff3_cv)
+dbClose(buff2_cv)
+dbClose(prec1_cv)
+dbClose(prec2_cv)
+dbClose(prec3_cv)
+dbClose(prec4_cv)
+dbClose(M4M3_cv)
+dbClose(M2M3_cvB)
+dbClose(M2M3_cv)
+dbClose(M2M1_cv) 
+dbClose(winv_cv) 
+dbClose(M1P_cv)
+dbClose(M1N_cv)
+dbClose(nm_cv)
+dbClose(pm_cv)
+dbClose(invfing2_cv)
+dbClose(cv)

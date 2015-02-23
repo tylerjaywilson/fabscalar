@@ -1,0 +1,33 @@
+************************************************************************
+* auCdl Netlist:
+* 
+* Library Name:  dual_bitline
+* Top Cell Name: 1r1w_new
+* View Name:     schematic
+* Netlisted on:  Aug 16 01:20:16 2009
+************************************************************************
+
+*.GLOBAL vdd!
++        gnd!
+
+*.PIN vdd!
+*+    gnd!
+
+************************************************************************
+* Library Name: dual_bitline
+* Cell Name:    1r1w_new
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT 1r1w_new R1_WL W1_WL R1_BTL R1_BTLB W1_BTL W1_BTLB
+*.PININFO r1_wl:I w1_btl:I w1_btlb:I w1_wl:I r1_btl:B r1_btlb:B
+MM78 r1_btl r1_wl net0248 gnd! NMOS_VTL W=90n L=50n
+MM41 net0220 w1_wl w1_btlb gnd! NMOS_VTL W=90n L=50n
+MM40 w1_btl w1_wl net0248 gnd! NMOS_VTL W=90n L=50n
+MM47 r1_btlb r1_wl net0220 gnd! NMOS_VTL W=90n L=50n
+MM1 net0248 net0220 gnd! gnd! NMOS_VTL W=90n L=50n
+MM0 gnd! net0248 net0220 gnd! NMOS_VTL W=90n L=50n
+MM3 vdd! net0248 net0220 vdd! PMOS_VTL W=180n L=50n
+MM2 net0248 net0220 vdd! vdd! PMOS_VTL W=180n L=50n
+.ENDS
+

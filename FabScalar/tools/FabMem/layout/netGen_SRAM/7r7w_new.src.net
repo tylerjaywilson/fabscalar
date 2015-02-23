@@ -1,0 +1,69 @@
+************************************************************************
+* auCdl Netlist:
+* 
+* Library Name:  dual_bitline
+* Top Cell Name: 7r7w_new
+* View Name:     schematic
+* Netlisted on:  Apr 20 16:42:53 2010
+************************************************************************
+
+*.GLOBAL gnd!
++        vdd!
+
+*.PIN gnd!
+*+    vdd!
+
+************************************************************************
+* Library Name: dual_bitline
+* Cell Name:    7r7w_new
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT 7r7w_new R1_WL R2_WL R3_WL R4_WL R5_WL R6_WL R7_WL W1_WL W2_WL W3_WL W4_WL W5_WL  
++ W6_WL W7_WL R1_BTL R1_BTLB R2_BTL R2_BTLB R3_BTL R3_BTLB R4_BTL R4_BTLB 
++ R5_BTL R5_BTLB R6_BTL R6_BTLB R7_BTL R7_BTLB 
++ W1_BTL W1_BTLB W2_BTL W2_BTLB W3_BTL W3_BTLB W4_BTL W4_BTLB W5_BTL W5_BTLB 
++ W6_BTL W6_BTLB W7_BTL  W7_BTLB
+*.PININFO r1_wl:I r2_wl:I r3_wl:I r4_wl:I r5_wl:I r6_wl:I r7_wl:I w1_btl:I 
+*.PININFO w1_btlb:I w1_wl:I w2_btl:I w2_btlb:I w2_wl:I w3_btl:I w3_btlb:I 
+*.PININFO w3_wl:I w4_btl:I w4_btlb:I w4_wl:I w5_btl:I w5_btlb:I w5_wl:I 
+*.PININFO w6_wl:I w7_wl:I r1_btl:B r1_btlb:B r2_btl:B r2_btlb:B r3_btl:B 
+*.PININFO r3_btlb:B r4_btl:B r4_btlb:B r5_btl:B r5_btlb:B r6_btl:B r6_btlb:B 
+*.PININFO r7_btl:B r7_btlb:B w6_btl:B w6_btlb:B w7_btl:B w7_btlb:B
+
+MM95 qbar_new qbar gnd! gnd! NMOS_VTL W=180n L=50n m=1
+MM97 gnd! q q_new gnd! NMOS_VTL W=180n L=50n m=1
+MM87 w7_btlb w7_wl qbar gnd! NMOS_VTL W=90n L=50n m=1
+MM82 r6_btl r6_wl q_new gnd! NMOS_VTL W=90n L=50n m=1
+MM83 r5_btl r5_wl q_new gnd! NMOS_VTL W=90n L=50n m=1
+MM84 r7_btl r7_wl q_new gnd! NMOS_VTL W=90n L=50n m=1
+MM85 w6_btl w6_wl q gnd! NMOS_VTL W=90n L=50n m=1
+MM78 r1_btl r1_wl q_new gnd! NMOS_VTL W=90n L=50n m=1
+MM79 r2_btl r2_wl q_new gnd! NMOS_VTL W=90n L=50n m=1
+MM80 r4_btl r4_wl q_new gnd! NMOS_VTL W=90n L=50n m=1
+MM81 r3_btl r3_wl q_new gnd! NMOS_VTL W=90n L=50n m=1
+MM68 w6_btlb w6_wl qbar gnd! NMOS_VTL W=90n L=50n m=1
+MM65 r7_btlb r7_wl qbar_new gnd! NMOS_VTL W=90n L=50n m=1
+MM49 r3_btlb r3_wl qbar_new gnd! NMOS_VTL W=90n L=50n m=1
+MM41 qbar w1_wl w1_btlb gnd! NMOS_VTL W=90n L=50n m=1
+MM38 w3_btl w3_wl q gnd! NMOS_VTL W=90n L=50n m=1
+MM51 r4_btlb r4_wl qbar_new gnd! NMOS_VTL W=90n L=50n m=1
+MM52 w4_btl w4_wl q gnd! NMOS_VTL W=90n L=50n m=1
+MM53 qbar w4_wl w4_btlb gnd! NMOS_VTL W=90n L=50n m=1
+MM54 w5_btl w5_wl q gnd! NMOS_VTL W=90n L=50n m=1
+MM55 qbar w5_wl w5_btlb gnd! NMOS_VTL W=90n L=50n m=1
+MM45 w7_btl w7_wl q gnd! NMOS_VTL W=90n L=50n m=1
+MM43 qbar w3_wl w3_btlb gnd! NMOS_VTL W=90n L=50n m=1
+MM42 qbar w2_wl w2_btlb gnd! NMOS_VTL W=90n L=50n m=1
+MM40 w1_btl w1_wl q gnd! NMOS_VTL W=90n L=50n m=1
+MM39 w2_btl w2_wl q gnd! NMOS_VTL W=90n L=50n m=1
+MM48 r2_btlb r2_wl qbar_new gnd! NMOS_VTL W=90n L=50n m=1
+MM47 r1_btlb r1_wl qbar_new gnd! NMOS_VTL W=90n L=50n m=1
+MM57 r5_btlb r5_wl qbar_new gnd! NMOS_VTL W=90n L=50n m=1
+MM60 r6_btlb r6_wl qbar_new gnd! NMOS_VTL W=90n L=50n m=1
+MM1 q qbar gnd! gnd! NMOS_VTL W=90n L=50n m=1
+MM0 gnd! q qbar gnd! NMOS_VTL W=90n L=50n m=1
+MM3 vdd! q qbar vdd! PMOS_VTL W=180n L=50n m=1
+MM2 q qbar vdd! vdd! PMOS_VTL W=180n L=50n m=1
+.ENDS
+

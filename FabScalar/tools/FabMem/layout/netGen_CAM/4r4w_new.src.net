@@ -1,0 +1,63 @@
+************************************************************************
+* auCdl Netlist:
+* 
+* Library Name:  CAM
+* Top Cell Name: 4r4w_new
+* View Name:     schematic
+* Netlisted on:  Mar  1 20:43:44 2010
+************************************************************************
+
+*.EQUATION
+*.SCALE METER
+.PARAM
+
+*.GLOBAL vdd!
++        gnd!
+
+*.PIN vdd!
+*+    gnd!
+
+************************************************************************
+* Library Name: CAM
+* Cell Name:    4r4w_new
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT 4r4w_new  W1_WL W2_WL W3_WL W4_WL 
++ R1_WL R2_WL R3_WL R4_WL 
++ W1_BTL W1_BTLB W2_BTL W2_BTLB W3_BTL W3_BTLB W4_BTL W4_BTLB
++ R1_BTL R1_BTLB R2_BTL R2_BTLB R3_BTL R3_BTLB R4_BTL R4_BTLB 
+*.PININFO r1_btl:I r1_btlb:I r1_wl:I r2_btl:I r2_btlb:I r2_wl:I r3_btl:I 
+*.PININFO r3_btlb:I r3_wl:I r4_btl:I r4_btlb:I r4_wl:I w1_btl:I w1_btlb:I 
+*.PININFO w1_wl:I w2_btl:I w2_btlb:I w2_wl:I w3_btl:I w3_btlb:I w3_wl:I 
+*.PININFO w4_btl:I w4_btlb:I w4_wl:I
+MM169 r2_wl D net0172 gnd! NMOS_VTL W=270n L=50n m=1
+MM168 net0172 r2_btl gnd! gnd! NMOS_VTL W=270n L=50n m=1
+MM167 net0177 r3_btl gnd! gnd! NMOS_VTL W=270n L=50n m=1
+MM166 r3_wl D net0177 gnd! NMOS_VTL W=270n L=50n m=1
+MM158 net0116 r2_btlb gnd! gnd! NMOS_VTL W=270n L=50n m=1
+MM159 r2_wl Dbar net0116 gnd! NMOS_VTL W=270n L=50n m=1
+MM160 r1_wl Dbar net109 gnd! NMOS_VTL W=270n L=50n m=1
+MM96 net109 r1_btlb gnd! gnd! NMOS_VTL W=270n L=50n m=1
+MM163 r4_wl Dbar net0124 gnd! NMOS_VTL W=270n L=50n m=1
+MM151 r4_wl D net0128 gnd! NMOS_VTL W=270n L=50n m=1
+MM165 net0128 r4_btl gnd! gnd! NMOS_VTL W=270n L=50n m=1
+MM162 r3_wl Dbar net0117 gnd! NMOS_VTL W=270n L=50n m=1
+MM161 net0117 r3_btlb gnd! gnd! NMOS_VTL W=270n L=50n m=1
+MM41 Dbar w1_wl w1_btlb gnd! NMOS_VTL W=90n L=50n m=1
+MM164 net0124 r4_btlb gnd! gnd! NMOS_VTL W=270n L=50n m=1
+MM38 w3_btl w3_wl D gnd! NMOS_VTL W=90n L=50n m=1
+MM52 w4_btl w4_wl D gnd! NMOS_VTL W=90n L=50n m=1
+MM53 Dbar w4_wl w4_btlb gnd! NMOS_VTL W=90n L=50n m=1
+MM43 Dbar w3_wl w3_btlb gnd! NMOS_VTL W=90n L=50n m=1
+MM42 Dbar w2_wl w2_btlb gnd! NMOS_VTL W=90n L=50n m=1
+MM40 w1_btl w1_wl D gnd! NMOS_VTL W=90n L=50n m=1
+MM39 w2_btl w2_wl D gnd! NMOS_VTL W=90n L=50n m=1
+MM171 net0179 r1_btl gnd! gnd! NMOS_VTL W=270n L=50n m=1
+MM170 r1_wl D net0179 gnd! NMOS_VTL W=270n L=50n m=1
+MM1 D Dbar gnd! gnd! NMOS_VTL W=90n L=50n m=1
+MM0 gnd! D Dbar gnd! NMOS_VTL W=90n L=50n m=1
+MM3 vdd! D Dbar vdd! PMOS_VTL W=180n L=50n m=1
+MM2 D Dbar vdd! vdd! PMOS_VTL W=180n L=50n m=1
+.ENDS
+

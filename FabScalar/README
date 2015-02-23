@@ -1,0 +1,123 @@
+/*******************************************************************************
+#                        NORTH CAROLINA STATE UNIVERSITY
+#
+#                               FabScalar Project
+#
+# FabScalar Copyright (c) 2007-2011 by Niket K. Choudhary, Salil Wadhavkar,
+# and Eric Rotenberg.  All Rights Reserved.
+#
+# This is a beta-release version.  It must not be redistributed at this time.
+*******************************************************************************/
+
+
+OVERVIEW
+
+The FabScalar project provides tools to generate synthesizable RTL of arbitrary
+superscalar cores. This beta-release contains two tools:
+
+1. FabGen: This tool generates synthesizable RTL of a superscalar core based 
+   on user-specified parameters:
+   * Frontend superscalar width
+   * Backend superscalar width
+   * Pipeline depths of canonical pipeline stages
+   * Issue queue size
+   Sizes of all structures besides the issue queue are parameterized in the
+   generated RTL. Therefore, these can be configured without having to
+   generate cores.
+
+2. FabMem: This tool estimates read/write delays, read/write energies, and area
+   of user-specified multi-ported RAMs/CAMs. It can also generate layouts of 
+   desired RAMs/CAMs. 
+
+
+DIRECTORY STRUCTURE
+
+1. tools: This directory contains the FabGen and FabMem tools.
+
+2. cores: This directory is where FabGen places the generated cores.
+There is a subdirectory for each core.
+
+3. simulation: This directory contains the simulation environment for running
+applications on the RTL models of cores. It contains FabScalar's C++/verilog
+co-simulation environment and pre-packaged benchmark directories.  The
+co-simulation environment enables running standard benchmarks on the RTL
+without requiring full-system simulation, and assists debugging the RTL via
+checking of retired instructions' results.
+
+4. physical-design: This directory contains the Synopsys Design Compiler
+scripts that we used to synthesize and place-and-route an example core.
+Users can modify these scripts to do the physical design of other
+FabGen-generated cores.
+
+
+CAD ENVIRONMENT
+
+To enable reproducing our results, the table below shows the CAD tools,
+compilers, and interpreters that we used.
+
++---------------------------+------------------------------------------+
+| Stage                     | CAD Tools/Compilers Used                 |
++---------------------------+------------------------------------------+
+| Core Generation (FabGen)  | perl-v5.6.1                              |
+| C++ Compilation           | gcc v-4.1.2 20080704 (Red Hat 4.1.2-48)  |
+| Functional Verification   | Cadence NC-Verilog v-06.20-s006          |
+| Logic Synthesis           | Cadence RTL Compiler v-07.10-s021_1,     |
+|                           | Synopsys Design Compiler v-X-2005.09-SP3 |
+| Place&Route               | Cadence SoC Encounter v-7.1              |
+| Spice Simulation (FabMem) | hspice v-C-2009.03-SP1                   |
+| Layout Generation (FabMem)| Cadence virtuoso v-6.1.2                 |
++---------------------------+------------------------------------------+
+
+Note:
+The FabMem tool is based on the FreePDK 45nm technology. Its spice sub-circuit
+library (used by the estimation tool), cell library (layouts), and SKILL scripts
+(layout tool) are all technology-dependent. To obtain FreePDK45 for use with
+FabMem, please refer to:
+http://www.eda.ncsu.edu/wiki/FreePDK45:Contents
+
+
+REFERENCES
+
+To learn more about the philosophy and design of FabScalar, please refer to
+the following work:
+
+N. K. Choudhary, S. V. Wadhavkar, T. A. Shah, S. S. Navada,
+H. Hashemi Najaf-abadi, and E. Rotenberg. FabScalar. 4th Workshop on
+Architectural Research Prototyping (WARP'09), in conjunction with ISCA-36,
+June 2009.
+
+N. K. Choudhary. A Synthesizable HDL Model for Out-of-Order Superscalar
+Processors. M.S. Thesis, Department of Electrical and Computer Engineering,
+North Carolina State University, August 2009.
+
+J. Gandhi. FabFetch: A Synthesizable RTL Model of a Pipelined Instruction
+Fetch Unit for Superscalar Processors. M.S. Thesis, Department of Electrical
+and Computer Engineering, North Carolina State University, June 2010.
+
+H. Mayukh. FabIssue: Automatic RTL Generation of Issue Logic in Superscalar
+Processors for Core Customization. M.S. Thesis, Department of Electrical and
+Computer Engineering, North Carolina State University, June 2010.
+
+T. A. Shah. FabMem: A Multiported RAM and CAM Compiler for Superscalar Design
+Space Exploration. M.S. Thesis, Department of Electrical and Computer
+Engineering, North Carolina State University, May 2010.
+
+
+FABSCALAR USER GROUP
+
+Please use the "FabScalar-Users" Google group to post any query or to provide
+any feedback.
+
+
+CITING FABSCALAR
+
+If you are using the beta-release of the FabScalar toolset for your research
+work, please cite the following paper:
+
++------------------------------------------------------------------------------+
+| N. K. Choudhary, S. V. Wadhavkar, T. A. Shah, S. S. Navada,                  |
+| H. Hashemi Najaf-abadi, and E. Rotenberg. FabScalar. 4th Workshop on         |
+| Architectural Research Prototyping (WARP'09), in conjunction with ISCA-36,   |
+| June 2009.                                                                   |
++------------------------------------------------------------------------------+
+

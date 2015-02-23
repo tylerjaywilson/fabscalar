@@ -1,0 +1,49 @@
+************************************************************************
+* auCdl Netlist:
+* 
+* Library Name:  CAM
+* Top Cell Name: 2r2w_new
+* View Name:     schematic
+* Netlisted on:  Mar  2 00:55:41 2010
+************************************************************************
+
+*.EQUATION
+*.SCALE METER
+.PARAM
+
+*.GLOBAL gnd!
++        vdd!
+
+*.PIN gnd!
+*+    vdd!
+
+************************************************************************
+* Library Name: CAM
+* Cell Name:    2r2w_new
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT 2r2w_new W1_WL W2_WL 
++ R1_WL R2_WL 
++ W1_BTL W1_BTLB W2_BTL W2_BTLB 
++ R1_BTL R1_BTLB R2_BTL R2_BTLB 
+*.PININFO r1_btl:I r1_btlb:I r1_wl:I r2_btl:I r2_btlb:I r2_wl:I w1_btl:I 
+*.PININFO w1_btlb:I w1_wl:I w2_btl:I w2_btlb:I w2_wl:I
+MM169 r2_wl D net0172 gnd! NMOS_VTL W=180n L=50n m=1
+MM168 net0172 r2_btl gnd! gnd! NMOS_VTL W=180n L=50n m=1
+MM158 net0116 r2_btlb gnd! gnd! NMOS_VTL W=180n L=50n m=1
+MM159 r2_wl Dbar net0116 gnd! NMOS_VTL W=180n L=50n m=1
+MM160 r1_wl Dbar net109 gnd! NMOS_VTL W=180n L=50n m=1
+MM96 net109 r1_btlb gnd! gnd! NMOS_VTL W=180n L=50n m=1
+MM41 Dbar w1_wl w1_btlb gnd! NMOS_VTL W=90n L=50n m=1
+MM42 Dbar w2_wl w2_btlb gnd! NMOS_VTL W=90n L=50n m=1
+MM40 w1_btl w1_wl D gnd! NMOS_VTL W=90n L=50n m=1
+MM39 w2_btl w2_wl D gnd! NMOS_VTL W=90n L=50n m=1
+MM171 net0179 r1_btl gnd! gnd! NMOS_VTL W=180n L=50n m=1
+MM170 r1_wl D net0179 gnd! NMOS_VTL W=180n L=50n m=1
+MM1 D Dbar gnd! gnd! NMOS_VTL W=90n L=50n m=1
+MM0 gnd! D Dbar gnd! NMOS_VTL W=90n L=50n m=1
+MM3 vdd! D Dbar vdd! PMOS_VTL W=180n L=50n m=1
+MM2 D Dbar vdd! vdd! PMOS_VTL W=180n L=50n m=1
+.ENDS
+

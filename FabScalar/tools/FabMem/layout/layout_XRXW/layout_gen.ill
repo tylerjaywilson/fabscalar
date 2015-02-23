@@ -1,0 +1,17 @@
+/************ This is a Top Skill Script to configure the parameter for SRAM compiler ******************/
+Rp = 4 Wp = 4
+D = 128
+W = 32
+DC = 2                                         
+
+;del_w= 4.48 del_h = 3.205;for 8r8w
+;del_w= 3.92 del_h = 2.7125;for 7r7w
+;del_w= 3.36 del_h = 2.43;for 6r6w
+;del_w= 2.8 del_h = 2.15 ;for 5r5w
+del_w= 2.24 del_h = 2.0775;for 4r4w
+;del_w= 1.82 del_h = 1.5875;for 3r3w
+;del_w= 1.68 del_h = 1.345;for 2r2w
+;del_w= 1.275 del_h = 1.4175;for 1r1w
+
+load("./layout_XRXW/array_skill.ill")
+

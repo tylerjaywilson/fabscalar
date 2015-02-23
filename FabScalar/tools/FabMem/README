@@ -1,0 +1,132 @@
+/*******************************************************************************
+#                        NORTH CAROLINA STATE UNIVERSITY
+#
+#                               FabScalar Project
+#
+# FabScalar Copyright (c) 2007-2011 by Niket K. Choudhary, Salil Wadhavkar,
+# and Eric Rotenberg.  All Rights Reserved.
+#
+# This is a beta-release version.  It must not be redistributed at this time.
+*******************************************************************************/
+
+
+OVERVIEW
+
+FabMem estimates read/write delays, read/write energies, and areas of
+user-specified multi-ported RAMs/CAMs. It can also generate layouts of desired
+RAMs/CAMs. The full layouts can be used for physical design of the processor,
+and to obtain more accurate delay, energy, and area results.
+
+To learn more about the philosophy and design of FabMem, please refer to the
+following work:
+
+T. A. Shah. FabMem: A Multiported RAM and CAM Compiler for Superscalar Design
+Space Exploration. M.S. Thesis, Department of Electrical and Computer
+Engineering, North Carolina State University, May 2010.
+
+
+DIRECTORY STRUCTURE
+
+1. "spice": This directory contains tools to estimate read/write times,
+   read/write energies, and areas of user-specified multi-ported RAMs/CAMs.
+   The directories "spice/ram" and "spice/cam" have the RAM and CAM estimation
+   tools, respectively. Each of these has three subdirectories:
+   a. "library" contains spice sub-circuits for building blocks: bitcells,
+       address decoders, wordline drivers, precharge circuits, column muxes,
+       sense amps, write drivers, etc., with varying read and write ports,
+       address bits, and transistor sizes.
+   b. "source" contains the source code of the estimation tool. A Makefile is
+      provided to compile the tool, and it also serves as a README. The
+      estimation tool builds a spice circuit of the representative critical path
+      for the user-specified memory, using spice sub-circuits from the library,
+      and simulates it with a suite of testcases. These testcases try out
+      different scenarios among the many read/write ports, aimed at finding the
+      worst-case delay. The RAM estimation tool also tries out different degrees
+      of column muxing (1, 2 and 4) to identify the best one.
+   c. "run" contains a Makefile. This Makefile serves as both a README and an
+      example run of the estimation tool. As a README, the Makefile explains
+      input arguments to the estimation tool and how to interpret its output.
+      You may edit and use the Makefile to run the estimation tool for various
+      RAM/CAM configurations.
+
+2. "lef": This directory contains tools to generate LEF files for RAMs
+   ("lef/ram") and CAMs ("lef/cam"). When doing place-and-route, the behavioral
+   verilog modules of RAMs/CAMs must be replaced by LEFs. LEFs express the RAM or
+   CAM physical geometry (height and width) and pin locations. The height and
+   width is obtained from the estimation tool (see 1 above). "lef/ram" and
+   "lef/cam" each have two subdirectories:
+   a. "source" has the source code and Makefile of the LEF tool.
+   b. "run" contains a Makefile. This Makefile serves as both a README and an
+      example run of the LEF tool. As a README, the Makefile explains
+      input arguments to the LEF tool and how to interpret its output.
+      You may edit and use the Makefile to run the LEF tool for various
+      RAM/CAM configurations.
+
+3. "layout": This directory contains files to generate the physical designs
+   (layouts) of user-specified multi-ported RAMs/CAMs. The "layout" directory
+   has five subdirectories:
+   a. "CAM", "dual_bitline": These directories have the layouts (open access
+      format) of all components used to build RAMs and CAMs.
+   b. "layout_CAM": This directory has the SKILL scripts for automatically
+      generating the full layouts of CAMs. To generate a particular CAM, edit
+      the top-level script, "layout_gen.ill", to specify:
+      D:  Depth, i.e., number of words.
+      W:  Width, i.e., word size, in bits.
+      Rp: Number of read ports.
+      Wp: Number of write ports.
+   c. "layout_2XRXW", "layout_XRXW": These directories have the SKILL scripts
+      for automatically generating the full layouts of RAMs, of two types:
+      RAMs with twice the number of read ports as write ports (2XRXW) and RAMs
+      with the same number of read and write ports (XRXW). To generate a
+      particular RAM, edit the top-level script, "layout_gen.ill", to specify:
+      D:  Depth, i.e., number of words.
+      W:  Width, i.e., word size, in bits.
+      Rp: Number of read ports.
+      Wp: Number of write ports.
+      DC: Degree of column muxing: 1, 2, or 4. (Obtained from estimation tool.)
+   d. "netGen_CAM", "netGen_SRAM": These directories contain tools to generate
+      full SPICE netlist of CAMs and RAMs. The generated netlist can be used for 
+      LVS, and detailed timing and power analysis.
+      The directories also contain Makefile that has an exmaple run and it also 
+      explains input arguments to the netlist generation tool.
+
+    Here are the steps for generating a full layout using Cadence Virtuoso:
+    1. Go to "FabScalar/tools/FabMem/layout" and start Cadence Virtuoso.
+    2. Use Virtuoso's Library Path Editor, to add "CAM" and "dual_bitline" to
+       the Library Manager.
+    3. Make sure all layouts under "CAM" and "dual_bitline" can be opened, at
+       least as read-only.
+    4. Use Virtuoso's Library Manager to create one more library called
+       "Skill_test". The SKILL scripts will place the generated layout in this
+       library.
+    5. In Virtuoso's CIW window (command shell), enter the following command to
+       generate the layout of a CAM:
+       load "./layout_CAM/layout_gen.ill"
+       Enter the following command to generate the layout of a RAM:
+       load "./layout_2XRXW/layout_gen.ill"
+       (See above for how to change the CAM/RAM configuration in the SKILL
+       script.)
+
+ 
+TECHNOLOGY DEPENDENCE
+
+The FabMem tool is based on the FreePDK 45nm technology. Its spice sub-circuit
+library (used by the estimation tool), cell library (layouts), and SKILL scripts
+(layout tool) are all technology-dependent. To obtain FreePDK45 for use with
+FabMem, please refer to:
+http://www.eda.ncsu.edu/wiki/FreePDK45:Contents
+
+
+FABMEM LIMITATIONS
+
+1. FabMem is tied to a specific technology (FreePDK45).
+2. The largest supported RAM is 512 words.
+3. FabMem can generate RAMs for only 2XR-XW and XR-XW configurations. The
+   maximum number of read ports is 16. The maximum number of write ports is 8.
+4. The degree of column muxing in RAMs is limited to 1, 2, and 4.
+5. The largest supported CAM is 256 words.
+6. FabMem can generate CAMs for only XR-XW configurations. The maximum number of
+   read ports is 8. The maximum number of write ports is 8.
+7. It is possible to generate the layouts of very large memories, for example,
+   a 512x32 16R8W RAM, but at times Cadence Virtuoso crashes. This problem was
+   experienced intermittently.

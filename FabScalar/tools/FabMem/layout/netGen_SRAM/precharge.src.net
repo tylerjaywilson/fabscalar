@@ -1,0 +1,29 @@
+.PARAM
+
+*.GLOBAL vdd!
+
+
+*.PIN vdd!
+
+
+
+
+.SUBCKT precharge clk btl
+.param w1=360n
+MM1 btl clk vdd! vdd! PMOS_VTL W='w1' L=50n
+.ENDS
+
+.SUBCKT precharge72 clk btl
+MM1 btl clk vdd! vdd! PMOS_VTL W=720n L=50n
+.ENDS
+
+.SUBCKT colmux_2 col in1 in2 out
+
+m3 in2 colb out gnd! NMOS_VTL L=50e-9 W=180e-9
+m0 in1 col out gnd! NMOS_VTL L=50e-9 W=180e-9
+m2 in2 col out vdd! PMOS_VTL L=50e-9 W=180e-9
+m1 in1 colb out vdd! PMOS_VTL L=50e-9 W=180e-9
+MM5 colb col vdd! vdd! PMOS_VTL W=180n L=50n
+MM6 colb col gnd! gnd! NMOS_VTL W=90n L=50n
+
+.ENDS

@@ -1,0 +1,48 @@
+#*******************************************************************************
+#                        NORTH CAROLINA STATE UNIVERSITY
+#
+#                               FabScalar Project
+#
+# FabScalar Copyright (c) 2007-2011 by Niket K. Choudhary, Salil Wadhavkar,
+# and Eric Rotenberg.  All Rights Reserved.
+#
+# This is a beta-release version.  It must not be redistributed at this time.
+#*******************************************************************************
+
+
+OVERVIEW
+
+We provide example Synopsys Design Compiler scripts so that users have a
+starting point for logic synthesis.
+
+
+LOGIC SYNTHESIS AND PLACE-AND-ROUTE
+
+FebGen-generated RTL is synthesizable and we have also taken some designs
+through place-and-route.
+
+Before starting synthesis, comment-out the statement "`define VERIFY" in the
+file "FabScalarParam.v". Doing so effectively removes unsynthesizable verilog
+needed for simulation only: VPIs (the verilog/C++ co-simulation environment)
+and performance counters.
+
+The RTL models highly-ported RAMs and CAMs with behavioral modules.  These
+modules can be synthesized as-is but they would be synthesized to flip-flops
+and random logic. In reality, these should be custom-designed library elements.
+Here's how we handle the physical design:
+
+  (1) We use FabMem to generate custom designs of these critical memory
+      structures. These custom designs include full layouts, SPICE netlists
+      extracted from the layouts for generating timing and power numbers, and
+      LEFs generated from the layouts for the physical design flow.
+  (2) During synthesis, we remove the behavioral modules of the memory
+      structures and constrain their input-port and output-port timing paths
+      based on timing numbers from SPICE simulation.
+  (3) For place-and-route, we use the LEFs (see above) to represent the memory
+      structures.
+  (4) If doing a tape-out, the GDS2 of the memory structures can be extracted
+      from their layouts.
+
+We use FreePDK45, a 45nm based standard cell library, for logic synthesis and
+place-and-route. To know more about FreePDK45, please refer to
+http://www.eda.ncsu.edu/wiki/FreePDK45:Contents

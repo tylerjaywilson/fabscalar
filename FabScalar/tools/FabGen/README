@@ -1,0 +1,149 @@
+/*******************************************************************************
+#                        NORTH CAROLINA STATE UNIVERSITY
+#
+#                               FabScalar Project
+#
+# FabScalar Copyright (c) 2007-2011 by Niket K. Choudhary, Salil Wadhavkar,
+# and Eric Rotenberg.  All Rights Reserved.
+#
+# This is a beta-release version.  It must not be redistributed at this time.
+*******************************************************************************/
+
+OVERVIEW
+
+FabGen is a tool, written in the perl programming language, to generate RTL
+models of arbitrary cores within FabScalar's canonical superscalar template.
+
+
+USING FABGEN
+
+Step 1:
+
+   Change the following in "path.pl".
+   (1) $FABSCALAR_INSTALLATION_DIR: This is the directory where you installed
+   the FabScalar toolset.
+   (2) $core_name: Use this to name the core.
+
+   FabGen will place the RTL model of the core in the following directory:
+   $FABSCALAR_INSTALLATION_DIR/FabScalar/cores/$core_name/
+   If the directory already exists, FabGen will print an error and exit so as
+   not to overwrite an existing core.  If the directory does not exist, FabGen
+   will create it and generate the core within it.
+
+Step 2:
+
+   You may use the top-level FabGen script, "generate_Processor.pl", directly.
+   Alternatively, you may edit and use the provided "Makefile" which calls the
+   top-level script for a number of example cores.
+
+   Input arguments to "generate_Processor.pl":
+   * Frontend superscalar width (Fetch-1/Fetch-2/Decode/Rename/Dispatch width).
+   * Function unit (FU) configuration.  The backend superscalar width
+     (Issue/Register-Read/Execute/Writeback width) is implied by the total
+     number of FUs.  Since there must be at least one of each FU type
+     (simple-ALU, complex-ALU, branch, load/store), the minimum issue width
+     is 4.
+   * Issue queue size, and two parameters having to do with the select logic
+     (select tree block size and whether or not the payload RAM is removed
+     from the critical wakeup-select loop).
+   * Pipeline depths of canonical pipeline stages, for those stages that can
+     be configured for more than one depth. In the beta FabGen version,
+     these are Fetch-1 depth, Issue depth, and Register-Read/Writeback depth.
+     (We have sub-pipelined other canonical pipeline stages, but the beta
+     FabGen version does not.)
+
+   The following command displays the command-line arguments required by
+   "generate_Processor.pl", as well as the constraints on parameters:
+   % perl generate_Processor.pl -h
+   You can also look at the examples in "Makefile".
+
+Step 3:
+
+   Sizes of all structures besides the issue queue are parameterized in the
+   generated RTL. Therefore, they can be configured after the RTL has been
+   generated. They include the Physical Register File, Active List
+   (i.e., reorder buffer), Load Queue, Store Queue, branch prediction tables
+   (RAS, BTB, and pattern history table if separate from the BTB), and
+   Fetch Queue.
+
+
+LIMITATIONS OF BETA-RELEASE FABGEN
+
+The beta-release FabGen has some limitations that we are currently addressing.
+They fall into three categories: features implemented in verilog but not yet
+incorporated into FabGen (Category 1), design constraints (Category 2), and
+unimplemented architecture and microarchitecture features (Category 3).
+
+CATEGORY 1: Features implemented but not automated.
+
+FabScalar designers have implemented certain aspects in verilog, that have not
+yet been incorporated into the beta-release FabGen tool.  That is, these aspects
+are implemented but not automated.
+   1a. FabScalar designers have sub-pipelined the Fetch-2, Decode, and Rename
+       stages, but FabGen does not incorporate these designs.
+   1b. FabScalar designers have implemented different Retire widths, but FabGen
+       fixes the Retire width at 4.
+   1c. FabScalar designers have implemented the gshare branch predictor in the
+       Fetch-1 stage, but FabGen does not incorporate this design.
+   1d. FabScalar designers have implemented "Decoupled Effective-Ahead
+       Pipelining (DEAP)" for sub-pipelining the branch prediction logic
+       (Fetch-1 stage) arbitrarily deep, to enable large gshare predictors
+       with a fast cycle time. FabGen does not yet incorporate DEAP.
+       For more information on this aspect, refer to the following thesis:
+       J. Gandhi. FabFetch: A Synthesizable RTL Model of a Pipelined Instruction
+       Fetch Unit for Superscalar Processors. M.S. Thesis, ECE, NCSU, June 2010.
+   1e. Shadow-map based branch misprediction recovery has been implemented in a
+       baseline 4-way superscalar processor, but FabGen does not incorporate
+       this high-performance recovery model.
+
+CATEGORY 2: Design constraints.
+
+There are some design constraints that we plan to relax.
+   2a. The Fetch/Decode width and Rename/Dispatch width are the same. This need
+       not be the case since Decode and Rename are decoupled by the Fetch Queue.
+   2b. The Dispatch width cannot be greater than the Issue width (it can be less
+       or equal, however).
+   2c. The Issue Queue size must be power of 2.
+   2d. There is only 1 load/store pipe, 1 complex-alu pipe, and 1 branch pipe.
+   2e. The minimum issue width is 4 since each FU type must be present. This can
+       be fixed by combining multiple FU types into a single execution pipeline.
+       Combining multiple FU types of different latencies is problematic, however,
+       since they share a wakeup port with a fixed wakeup timing chain.
+   2f. When there are multiple FUs of the same type (simple-alu in our case),
+       their select-trees have to be cascaded. This negatively impacts cycle
+       time. This can be fixed by assigning instructions of the same type
+       to particular FUs when they are dispatched into the issue queue.
+
+CATEGORY 3: Unimplemented architecture and microarchitecture features.
+
+   3a. In-order issue.
+   3b. Floating-point instructions.
+   3c. I-cache, D-cache. (They always hit.)
+   3d. TLB.
+   3e. Speculative wakeup of load-dependent instructions.
+   3f. Explicit memory dependence predictor.
+   3g. Replay mechanism for load-dependent instructions.
+   3h. Split-stores.
+
+More details on how loads are handled in FabGen-generated cores:
+
+Hit/miss prediction: (this relates to 3e, above)
+We always predict that a load will miss in the Data Cache. Thus, load-dependent
+instructions are not woken up speculatively -- they are woken up when the load
+gets data from the Store Queue or Data Cache. (Predicting hits, and
+speculatively waking up load-dependent instructions accordingly, would require
+a replay mechanism to perform well.)
+
+Memory dependence prediction: (this relates to 3f, above)
+Loads are aggressively speculated in this respect. Loads ignore prior stores
+that have not executed yet (unknown store addresses), obtaining their data
+from completed conflicting stores (store-load forwarding) or the Data Cache.
+If the load executed prematurely (store conflict detected after load executed),
+the processor recovers (see recovery model, below). (Performance can be
+improved by implementing an explicit memory dependence predictor, split-stores,
+and/or a replay mechanism.)
+
+Recovery model: (this relates to 3g, above)
+If a load was misspeculated, the processor waits until the load retires,
+restores the Rename Map Table from the Architectural Map Table, flushes the
+pipeline, and restarts instruction fetching from the instruction after the load.

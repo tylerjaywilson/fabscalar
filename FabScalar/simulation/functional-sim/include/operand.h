@@ -1,0 +1,8 @@
+typedef
+enum {
+RSRC_OPERAND,
+RDST_OPERAND,
+MSRC_OPERAND,
+MDST_OPERAND,
+RSRC_A_OPERAND
+} operand_t;

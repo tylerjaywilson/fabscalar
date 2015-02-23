@@ -1,0 +1,16 @@
+#
+# Edit Lock-Stake file. CAUTION: Please do not change.
+#
+# Information about current Edit Lock Owner.
+#
+LockStakeVersion               1.1
+LoginName                      tashah
+HostName                       grendel1.ece.ncsu.edu
+ProcessIdentifier              12940
+ProcessCreationTime_UTC        0
+ProcessCreationTime_Readable   Wed Dec 31 19:00:00 1969 EST
+AppIdentifier                  OA File System Design Manager
+OSType                         unix
+ReasonForPlacingEditLock       OpenAccess edit lock
+FilePathUsedToEditLock         /afs/eos.ncsu.edu/lockers/research/ece/ericro/users/tashah/independ/TMP/layout_data/dual_bitline/4r4w_new/layout/layout.oa.cdslck
+TimeEditLocked                 Sat Apr 17 18:07:42 2010 EDT

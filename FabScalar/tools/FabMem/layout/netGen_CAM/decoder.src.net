@@ -1,0 +1,137 @@
+
+
+*.GLOBAL gnd!
++        vdd!
+
+*.PIN gnd!
+*+    vdd!
+
+************************************************************************
+
+.SUBCKT decode2 CLK a1 a0 wl
+*.PININFO CLK:I a1:I a0:I wl:O
+
+M0 wl CLK VDD! VDD! pmos_vtl L='50n' W=180n
+M1 wl a1 net1 GND! nmos_vtl L='50n' W=90n
+M6 net1 a0 net2 GND! nmos_vtl L='50n' W=90n
+M3 net2 CLK GND! GND! nmos_vtl L='50n' W=90n
+
+.ENDS
+
+.SUBCKT decode3 CLK a2 a1 a0 wl
+*.PININFO CLK:I a2:I a1:I a0:I wl:O
+
+M0 wl CLK VDD! VDD! pmos_vtl L='50n' W=360n
+M1 wl a2 net1 GND! nmos_vtl L='50n' W=90n
+M6 net1 a1 net2 GND! nmos_vtl L='50n' W=90n
+M6 net2 a0 net3 GND! nmos_vtl L='50n' W=90n
+M3 net3 CLK GND! GND! nmos_vtl L='50n' W=90n
+
+.ENDS
+
+.SUBCKT decode4 CLK a3 a2 a1 a0 wl
+*.PININFO CLK:I a3:I a2:I a1:I a0:I wl:O
+
+M0 wl CLK VDD! VDD! pmos_vtl L='50n' W=360n
+M4 wl a3 net2 GND! nmos_vtl L='50n' W=90n
+M2 net2 a2 net3 GND! nmos_vtl L='50n' W=90n
+M5 net3 a1 net4 GND! nmos_vtl L='50n' W=90n
+M6 net4 a0 net5 GND! nmos_vtl L='50n' W=90n
+M3 net5 CLK GND! GND! nmos_vtl L='50n' W=90n
+
+.ENDS
+
+
+.SUBCKT decode5 CLK a4 a3 a2 a1 a0 wl
+*.PININFO CLK:I a4:I a3:I a2:I a1:I a0:I wl:O
+
+M0 wl CLK VDD! VDD! pmos_vtl L='50n' W=360n
+M1 wl a4 net1 GND! nmos_vtl L='50n' W=90n
+M4 net1 a3 net2 GND! nmos_vtl L='50n' W=90n
+M2 net2 a2 net3 GND! nmos_vtl L='50n' W=90n
+M5 net3 a1 net4 GND! nmos_vtl L='50n' W=90n
+M6 net4 a0 net5 GND! nmos_vtl L='50n' W=90n
+M3 net5 CLK GND! GND! nmos_vtl L='50n' W=90n
+
+.ENDS
+
+
+.SUBCKT decode6 CLK a5 a4 a3 a2 a1 a0 wl
+*.PININFO CLK:I a5:I a4:I a3:I a2:I a1:I a0:I wl:O
+
+M0 wl CLK VDD! VDD! pmos_vtl L='50n' W=720n
+M7 wl a5 net6 GND! nmos_vtl L='50n' W=90n
+M1 net6 a4 net1 GND! nmos_vtl L='50n' W=90n
+M4 net1 a3 net2 GND! nmos_vtl L='50n' W=90n
+M2 net2 a2 net3 GND! nmos_vtl L='50n' W=90n
+M5 net3 a1 net4 GND! nmos_vtl L='50n' W=90n
+M6 net4 a0 net5 GND! nmos_vtl L='50n' W=90n
+M3 net5 CLK GND! GND! nmos_vtl L='50n' W=90n
+
+.ENDS
+
+.SUBCKT decode7 CLK a6 a5 a4 a3 a2 a1 a0 wl
+*.PININFO CLK:I a6:I a5:I a4:I a3:I a2:I a1:I a0:I wl:O
+
+M0 wl CLK VDD! VDD! pmos_vtl L='50n' W=720n
+M1 wl a6 net1 GND! nmos_vtl L='50n' W=90n
+M2 net1 a5 net2 GND! nmos_vtl L='50n' W=90n
+M3 net2 a4 net3 GND! nmos_vtl L='50n' W=90n
+M4 net3 a3 net4 GND! nmos_vtl L='50n' W=90n
+M5 net4 a2 net5 GND! nmos_vtl L='50n' W=90n
+M6 net5 a1 net6 GND! nmos_vtl L='50n' W=90n
+M7 net6 a0 net7 GND! nmos_vtl L='50n' W=90n
+M8 net7 CLK GND! GND! nmos_vtl L='50n' W=90n
+
+.ENDS
+
+.SUBCKT decode8 CLK a7 a6 a5 a4 a3 a2 a1 a0 wl
+*.PININFO CLK:I a7:I a6:I a5:I a4:I a3:I a2:I a1:I a0:I wl:O
+
+M0 wl CLK VDD! VDD! pmos_vtl L='50n' W=720n
+M1 wl a7 net1 GND! nmos_vtl L='50n' W=90n
+M2 net1 a6 net2 GND! nmos_vtl L='50n' W=90n
+M3 net2 a5 net3 GND! nmos_vtl L='50n' W=90n
+M4 net3 a4 net4 GND! nmos_vtl L='50n' W=90n
+M5 net4 a3 net5 GND! nmos_vtl L='50n' W=90n
+M6 net5 a2 net6 GND! nmos_vtl L='50n' W=90n
+M7 net6 a1 net7 GND! nmos_vtl L='50n' W=90n
+M8 net7 a0 net8 GND! nmos_vtl L='50n' W=90n
+M9 net8 CLK GND! GND! nmos_vtl L='50n' W=90n
+
+.ENDS
+
+.SUBCKT decode9 CLK a8 a7 a6 a5 a4 a3 a2 a1 a0 wl
+*.PININFO CLK:I a8:I a7:I a6:I a5:I a4:I a3:I a2:I a1:I a0:I wl:O
+
+M0 wl CLK VDD! VDD! pmos_vtl L='50n' W=720n
+M1 wl a8 net1 GND! nmos_vtl L='50n' W=90n
+M2 net1 a7 net2 GND! nmos_vtl L='50n' W=90n
+M3 net2 a6 net3 GND! nmos_vtl L='50n' W=90n
+M4 net3 a5 net4 GND! nmos_vtl L='50n' W=90n
+M5 net4 a4 net5 GND! nmos_vtl L='50n' W=90n
+M6 net5 a3 net6 GND! nmos_vtl L='50n' W=90n
+M7 net6 a2 net7 GND! nmos_vtl L='50n' W=90n
+M8 net7 a1 net8 GND! nmos_vtl L='50n' W=90n
+M9 net8 a0 net9 GND! nmos_vtl L='50n' W=90n
+M10 net9 CLK GND! GND! nmos_vtl L='50n' W=90n
+
+.ENDS
+
+.SUBCKT decode10 CLK a9 a8 a7 a6 a5 a4 a3 a2 a1 a0 wl
+*.PININFO CLK:I a9:I a8:I a7:I a6:I a5:I a4:I a3:I a2:I a1:I a0:I wl:O
+
+M0 wl CLK VDD! VDD! pmos_vtl L='50n' W=720n
+M1 wl a9 net1 GND! nmos_vtl L='50n' W=90n
+M2 net1 a8 net2 GND! nmos_vtl L='50n' W=90n
+M3 net2 a7 net3 GND! nmos_vtl L='50n' W=90n
+M4 net3 a6 net4 GND! nmos_vtl L='50n' W=90n
+M5 net4 a5 net5 GND! nmos_vtl L='50n' W=90n
+M6 net5 a4 net6 GND! nmos_vtl L='50n' W=90n
+M7 net6 a3 net7 GND! nmos_vtl L='50n' W=90n
+M8 net7 a2 net8 GND! nmos_vtl L='50n' W=90n
+M9 net8 a1 net9 GND! nmos_vtl L='50n' W=90n
+M10 net9 a0 net10 GND! nmos_vtl L='50n' W=90n
+M11 net10 CLK GND! GND! nmos_vtl L='50n' W=90n
+
+.ENDS

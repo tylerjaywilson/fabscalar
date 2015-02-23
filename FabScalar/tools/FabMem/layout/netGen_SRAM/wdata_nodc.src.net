@@ -1,0 +1,66 @@
+************************************************************************
+* auCdl Netlist:
+* 
+* Library Name:  dual_bitline
+* Top Cell Name: wdata_nodc
+* View Name:     schematic
+* Netlisted on:  Jun 29 18:53:17 2009
+************************************************************************
+
+
+*.GLOBAL gnd!
++        vdd!
+
+*.PIN gnd!
+*+    vdd!
+
+************************************************************************
+* Library Name: dual_bitline
+* Cell Name:    wdata_nodc
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT wdata_nodc btl clk data wr_en
+*.PININFO clk:I data:I wr_en:I btl:O
+MM10 btl net13 gnd! gnd! NMOS_VTL W=180n L=50n
+MM9 btl net13 gnd! gnd! NMOS_VTL W=180n L=50n
+MM6 net13 net25 gnd! gnd! NMOS_VTL W=180n L=50n
+MM2 net17 clk gnd! gnd! NMOS_VTL W=90n L=50n
+MM1 net21 wr_en net17 gnd! NMOS_VTL W=90n L=50n
+MM0 net25 data net21 gnd! NMOS_VTL W=90n L=50n
+MM8 btl net13 vdd! vdd! PMOS_VTL W=360n L=50n
+MM7 btl net13 vdd! vdd! PMOS_VTL W=360n L=50n
+MM4 net13 net25 vdd! vdd! PMOS_VTL W=360n L=50n
+MM3 net25 clk vdd! vdd! PMOS_VTL W=180n L=50n
+.ENDS
+
+.SUBCKT wdata_dc btl clk data wr_en col
+*.PININFO clk:I data:I wr_en:I btl:O col:I
+m11 net038 col net25 gnd! NMOS_VTL L=50e-9 W=90e-9
+m10 btl net13 gnd! gnd! NMOS_VTL L=50e-9 W=180e-9
+m9 btl net13 gnd! gnd! NMOS_VTL L=50e-9 W=180e-9
+m6 net13 net038 gnd! gnd! NMOS_VTL L=50e-9 W=180e-9
+m2 net17 clk gnd! gnd! NMOS_VTL L=50e-9 W=90e-9
+m1 net21 wr_en net17 gnd! NMOS_VTL L=50e-9 W=90e-9
+m0 net25 data net21 gnd! NMOS_VTL L=50e-9 W=90e-9
+m8 btl net13 vdd! vdd! PMOS_VTL L=50e-9 W=360e-9
+m7 btl net13 vdd! vdd! PMOS_VTL L=50e-9 W=360e-9
+m4 net13 net038 vdd! vdd! PMOS_VTL L=50e-9 W=360e-9
+m3 net038 clk vdd! vdd! PMOS_VTL L=50e-9 W=180e-9
+.ENDS
+
+.SUBCKT wdata_dc4 btl clk data wr_en colb cola
+*.PININFO clk:I data:I wr_en:I btl:O cola:I colb:I
+m12 net049 cola net25 gnd! NMOS_VTL L=50e-9 W=90e-9
+m11 net038 colb net049 gnd! NMOS_VTL L=50e-9 W=90e-9
+m10 btl net13 gnd! gnd! NMOS_VTL L=50e-9 W=180e-9
+m9 btl net13 gnd! gnd! NMOS_VTL L=50e-9 W=180e-9
+m6 net13 net038 gnd! gnd! NMOS_VTL L=50e-9 W=180e-9
+m2 net17 clk gnd! gnd! NMOS_VTL L=50e-9 W=90e-9
+m1 net21 wr_en net17 gnd! NMOS_VTL L=50e-9 W=90e-9
+m0 net25 data net21 gnd! NMOS_VTL L=50e-9 W=90e-9
+m8 btl net13 vdd! vdd! PMOS_VTL L=50e-9 W=360e-9
+m7 btl net13 vdd! vdd! PMOS_VTL L=50e-9 W=360e-9
+m4 net13 net038 vdd! vdd! PMOS_VTL L=50e-9 W=360e-9
+m3 net038 clk vdd! vdd! PMOS_VTL L=50e-9 W=180e-9
+.ENDS

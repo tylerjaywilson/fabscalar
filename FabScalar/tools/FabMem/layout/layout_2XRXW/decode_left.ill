@@ -1,0 +1,403 @@
+;; Interleaved Decoder implementation on left side of array
+
+;; Address Lines
+
+  b_on_right = round((Rp+Wp)/2)
+  temp = mod(Rp+Wp 2)
+  if(temp==1 then
+        b_on_left = b_on_right + 1
+  else  b_on_left = b_on_right ) ; if
+  
+  width = -b_on_left*delW_buff-0.3575
+  row_bits = round( (log(D) / log(2)))  
+  ib = 0
+  height = del_h * D
+  temp1=height
+  for(j 1 b_on_left
+     flagV=0
+     port_no=wl_array[(j-1)*2]
+  	for(i 1 (row_bits+1)*2
+            if( i==1 then 
+	        width = width - 0.185
+                temp1=height+3*PITCH_M2
+                dbCreatePath(cv "metal2" list(width:0.0 width:temp1) 0.07)
+	        dbCreateInst(cv M2M3_cvB nil list(width temp1-0.035) "R0")	   
+       	    else if(i== (row_bits+1)*2 then 
+		      width = width - 0.37	
+	       	      temp1=height+3*PITCH_M2
+	       	      dbCreatePath(cv "metal2" list(width:0.0 width:temp1) 0.07)
+               	      dbCreateInst(cv M2M3_cvB nil list(width temp1-0.035) "R0")	   
+                  else 
+			width = width - 0.14
+  	               	temp1=height
+                 	if(flagV==0 then          
+		     		dbCreatePath(cv "metal1" list(width:0.0 width:temp1) 0.065)
+                     		flagV=1
+                 	else
+		     		dbCreatePath(cv "metal2" list(width:0.0 width:temp1) 0.07)
+                     		flagV=0
+			);;if
+       	     	   );;if
+             );if
+          );for 	
+       width = width-0.185
+   ); for
+
+;; Input Buffer Placement
+  if(DC>1 then temp=floor(2*PITCH_M2*(Rp+Wp)/delW_col) if(temp<Rp then temp=Rp/2)
+     else temp=Rp)
+  cnt=0
+  for(i 1 b_on_left
+       port_no=wl_array[(i-1)*2]
+       if((port_no<=temp || port_no>Rp) then    cnt=cnt+1))
+  
+  gnd_con_len=-2.7+1.1875
+  temp1=(row_bits+1)*2*PITCH_M2+0.46
+  buff_cnt=0
+  width=-4*PITCH_M2-(b_on_left-1)*delW_buff-0.1
+  if(cnt>4 then
+        if(temp==Rp then
+	    dbCreatePath(cv "metal2" list(-3*PITCH_M2:del_h*D+3*PITCH_M2+0.67+0.6425+(row_bits-1)*(delH_buff+PITCH_M2*2*(cnt-4))
+		width-delW_buff:del_h*D+3*PITCH_M2+0.67+0.6425+(row_bits-1)*(delH_buff+PITCH_M2*2*(cnt-4))) 0.07)   
+	    dbCreateInst(cv M2M3_cv nil list(-3*PITCH_M2 del_h*D+3*PITCH_M2+0.67+0.6425+(row_bits-1)*(delH_buff+PITCH_M2*2*(cnt-4))) "R90")
+            dbCreatePath(cv "metal3" list(-3*PITCH_M2:del_h*D+3*PITCH_M2+0.67+0.6425+(row_bits-1)*(delH_buff+PITCH_M2*2*(cnt-4)) -3*PITCH_M2:del_h*D) 0.07)
+        else
+	    dbCreatePath(cv "metal2" list(-3*PITCH_M2:del_h*D+6*PITCH_M2
+		width+(cnt-1)*delW_buff+PITCH_M2:del_h*D+6*PITCH_M2
+		width+(cnt-1)*delW_buff+PITCH_M2:del_h*D+3*PITCH_M2+0.67+0.6425+(row_bits-1)*(delH_buff+PITCH_M2*2*(cnt-4))
+		width-delW_buff:del_h*D+3*PITCH_M2+0.67+0.6425+(row_bits-1)*(delH_buff+PITCH_M2*2*(cnt-4))) 0.07)   
+	    dbCreateInst(cv M2M3_cvB nil list(-3*PITCH_M2-0.015 del_h*D+6*PITCH_M2) "R0"))
+  else
+	if(temp==Rp then
+	    dbCreatePath(cv "metal2" list(-3*PITCH_M2:del_h*D+3*PITCH_M2+0.67+0.6425+(row_bits-1)*delH_buff
+	    		width-delW_buff:del_h*D+3*PITCH_M2+0.67+0.6425+(row_bits-1)*delH_buff) 0.07)   
+	    dbCreateInst(cv M2M3_cvB nil list(-3*PITCH_M2 del_h*D+3*PITCH_M2+0.67+0.6425+(row_bits-1)*delH_buff) "R0")
+	else
+	    dbCreatePath(cv "metal2" list(width+(cnt-1.5)*delW_buff+PITCH_M2:
+	    				del_h*D+3*PITCH_M2+0.67+0.6425+(row_bits-1)*delH_buff
+	    		width-delW_buff:del_h*D+3*PITCH_M2+0.67+0.6425+(row_bits-1)*delH_buff) 0.07)  
+            dbCreatePath(cv "metal2" list(-3*PITCH_M2:del_h*D+3*PITCH_M2+0.67-0.1875
+				width+(cnt-1)*delW_buff+PITCH_M2-0.78:del_h*D+3*PITCH_M2+0.67-0.1875) 0.07)
+	    dbCreateInst(cv M2M3_cvB nil list(-3*PITCH_M2-0.015 del_h*D+3*PITCH_M2+0.67-0.1875) "R0"))
+   );; if
+  for(i 1 b_on_left
+     port_no=wl_array[(i-1)*2]
+     height=del_h*D+3*PITCH_M2+0.67
+     if((port_no<=temp || port_no>Rp) then    
+        if(cnt>4 then
+           dbCreatePath(cv "metal2" list(width-2.365:del_h*D+5.5*PITCH_M2 
+           width-2.365:del_h*D+3*PITCH_M2+0.67+0.6425+(row_bits-1)*(delH_buff+PITCH_M2*2*(cnt-4))) 0.07);VDD
+           dbCreatePath(cv "metal2" list(-2.7-(b_on_left-buff_cnt-1)*delW_buff+1.1875:del_h*D-PITCH_M2/4 
+				      width-1.1875:del_h*D-PITCH_M2/4 
+				      width-1.1875:del_h*D+3*PITCH_M2+0.67+(row_bits-1)*(delH_buff+PITCH_M2*2*(cnt-4))) 0.07);GND
+	else
+           dbCreatePath(cv "metal2" list(width-2.365:del_h*D+4*PITCH_M2 width-2.365:del_h*D+3*PITCH_M2+0.67+0.6425+(row_bits-1)*delH_buff) 0.07);VDD
+           dbCreatePath(cv "metal2" list(-2.7-(b_on_left-buff_cnt-1)*delW_buff+1.1875:del_h*D-PITCH_M2/4 
+				      width-1.1875:del_h*D-PITCH_M2/4 
+				      width-1.1875:del_h*D+3*PITCH_M2+0.67+(row_bits-1)*delH_buff) 0.07);GND
+	) 
+
+    for(j 1 row_bits
+	height1=height+buff_cnt*2*PITCH_M2
+	dbCreateInst(cv buff3_cv nil list(width height) "R180")   
+        if(port_no>Rp then sprintf(str,"AW%d<%d>",port_no-Rp,j-1)
+	else sprintf(str,"AR%d<%d>",port_no,j-1)) ;; if
+        dbCreateLabel(cv "metal3" width:height str "centerCenter" "R0" "roman" 0.0275)
+        temp2=-b_on_left*delW_buff-0.3575-0.185-2*j*PITCH_M2-temp1*(i-1)
+        dbCreatePath(cv "metal2" list(temp2:del_h*D temp2:height1) 0.07) 
+	dbCreateInst(cv M2M3_cv nil list(temp2 height1) "R0")
+        dbCreatePath(cv "metal2" list(temp2+PITCH_M2:del_h*D temp2+PITCH_M2:height1+PITCH_M2) 0.07)
+	dbCreateInst(cv M2M3_cv nil list(temp2+PITCH_M2 height1+PITCH_M2) "R0")
+        dbCreateInst(cv M2M1_cv nil list(temp2+PITCH_M2 del_h*D) "R90")
+        dbCreatePath(cv "metal3" list(width-delW_buff+5*PITCH_M2:height 
+				      width-delW_buff+5*PITCH_M2:height1+PITCH_M2 
+				      temp2+PITCH_M2:height1+PITCH_M2) 0.07)
+        dbCreatePath(cv "metal3" list(width-2.095:height 
+				      width-2.095:height1
+				      temp2:height1) 0.07)
+	dbCreateInst(cv M2M1_cv1 nil list(width-2.095 height) "R90")
+	dbCreateInst(cv M2M3_cv nil list(width-2.095 height) "R0")
+        if(cnt>4 then 	height=height+delH_buff+(cnt-4)*2*PITCH_M2
+        else 	height=height+delH_buff                )                
+
+       )
+	width=width+delW_buff
+ 	buff_cnt++
+       );;if
+   ) ;;for
+
+  if(cnt>4 then
+     maxd_left=del_h*D+4*PITCH_M2+0.67+0.6425+(row_bits-1)*(delH_buff+PITCH_M2*2*(cnt-4)) ;got from the VDD wire placement on the top of the Address buffers
+  else
+     maxd_left=del_h*D+4*PITCH_M2+0.67+0.6425+(row_bits-1)*delH_buff
+  )
+;; Address lines for bottompart in case of DC>1
+  if(DC>1 then
+       width=-4*PITCH_M2-(b_on_left-1)*delW_buff
+       cnt=b_on_left-cnt
+       ;; VDD lines
+       buff_cnt=0
+       wl_no=0
+       for(i 1 Rp/2
+    	   while((wl_array[wl_no]<=Rp/2 || wl_array[wl_no]>Rp)
+           wl_no++) ;;while
+    	   if(mod(wl_no 2)==0 buff_cnt++)
+     	   wl_no++) ;; for
+
+       if(buff_cnt<=4 then    
+   	   dbCreatePath(cv "metal2" list(width-2.365-PITCH_M2/4:-5*PITCH_M2-row_bits*delH_buff 
+		 -2.7-(b_on_left-buff_cnt)*delW_buff+2.365:-5*PITCH_M2-row_bits*delH_buff
+		 -2.7-(b_on_left-buff_cnt)*delW_buff+2.365:0.00) 0.07);VDD at bttom of the bufffer ckt for Address lines
+       else
+   	   dbCreatePath(cv "metal2" list(width-2.365-PITCH_M2/4:-5*PITCH_M2-row_bits*(delH_buff+(cnt-4)*2*PITCH_M2)
+		 -2.7-(b_on_left-buff_cnt)*delW_buff+2.365:-5*PITCH_M2-row_bits*(delH_buff+(cnt-4)*2*PITCH_M2)
+		 -2.7-(b_on_left-buff_cnt)*delW_buff+2.365:0.00) 0.07);VDD at bttom of the bufffer ckt for Address lines
+       );; if
+      buff_cnt=0
+      for(i 1 b_on_left
+      port_no=wl_array[(i-1)*2]
+      height=-4.5*PITCH_M2-0.67
+      if((port_no>temp && port_no<=Rp) then    
+      	   if(cnt<=4 then 
+           	dbCreatePath(cv "metal2" list(-2.7-(b_on_left-1-buff_cnt)*delW_buff+1.1875:-3.5*PITCH_M2 width-1.1875:-3.5*PITCH_M2 						width-1.1875:-3*PITCH_M2-row_bits*delH_buff) 0.07) ;GND
+        	dbCreatePath(cv "metal2" list(width-2.365:-5*PITCH_M2 width-2.365:-5*PITCH_M2-row_bits*delH_buff) 0.07) ;VDD
+           else
+        	dbCreatePath(cv "metal2" list(-2.7-(b_on_left-1-buff_cnt)*delW_buff+1.1875:-3.5*PITCH_M2 width-1.1875:-3.5*PITCH_M2 
+			width-1.1875:-3*PITCH_M2-row_bits*(delH_buff+(cnt-4)*2*PITCH_M2)) 0.07) ;GND
+        	dbCreatePath(cv "metal2" list(width-2.365:-5*PITCH_M2 
+				width-2.365:-5*PITCH_M2-row_bits*(delH_buff+(cnt-4)*2*PITCH_M2)) 0.07) ;VDD
+          );;if
+      for(j 1 row_bits
+	  height1=height-buff_cnt*2*PITCH_M2
+	  dbCreateInst(cv buff3_cv nil list(width height) "R180")        
+          if(port_no>Rp then sprintf(str,"AW%d<%d>",port_no-Rp,j-1)
+	  else sprintf(str,"AR%d<%d>",port_no,j-1)) ;; if
+          dbCreateLabel(cv "metal3" width:height str "centerCenter" "R0" "roman" 0.0275)
+          temp2=-b_on_left*delW_buff-0.3575-0.185-2*j*PITCH_M2-temp1*(i-1)
+          dbCreatePath(cv "metal2" list(temp2:del_h*D temp2:height1) 0.07) 
+	  dbCreateInst(cv M2M3_cv nil list(temp2 height1) "R0")
+          dbCreatePath(cv "metal2" list(temp2+PITCH_M2:0.00 temp2+PITCH_M2:height1-PITCH_M2) 0.07)
+	  dbCreateInst(cv M2M3_cv nil list(temp2+PITCH_M2 height1-PITCH_M2) "R0")
+          dbCreateInst(cv M2M1_cv nil list(temp2+PITCH_M2 0.00) "R90")
+          dbCreatePath(cv "metal3" list(width-delW_buff+5*PITCH_M2:height 
+				      width-delW_buff+5*PITCH_M2:height1-PITCH_M2 
+				      temp2+PITCH_M2:height1-PITCH_M2) 0.07)
+          dbCreatePath(cv "metal3" list(width-2.095:height 
+				      width-2.095:height1
+				      temp2:height1) 0.07)
+	  dbCreateInst(cv M2M1_cv1 nil list(width-2.095 height) "R90")
+	  dbCreateInst(cv M2M3_cv nil list(width-2.095 height) "R0")
+	  if(cnt>4 then height=height-delH_buff-(cnt-4)*2*PITCH_M2
+          else height=height-delH_buff) ;; if
+       ) ;; for
+	width=width+delW_buff
+ 	buff_cnt++
+       );if
+     );;for
+  );if
+
+;;  Decoder NMOS PMOS Placement
+
+  declare(d_bits[row_bits*2+1]) ;;; decoder bit array
+  
+  d_no=0
+  flagV=0
+  buffer_no=0
+  
+  for(d_no 0 b_on_left-1
+     i=0
+     for(i 0 D-1
+  	width = -b_on_left*delW_buff-0.3575-0.185-d_no*((row_bits+1)*2*PITCH_M2+0.46)
+        if(flagV==1 then
+          height = del_h*(i+1) - wl_posi[d_no]
+        else
+          height = del_h*i + wl_posi[d_no] ) ; if
+        l=0
+  	for(k 0 row_bits-1
+        if(i<k>==0 then d_bits[l+2]=0 d_bits[l+1]=1
+        else d_bits[l+2]=1 d_bits[l+1]=0) ; if
+        l=l+2 ) ;; for
+  	d_bits[0]=1  
+  	l=2*row_bits  
+  	width=width-row_bits*2*PITCH_M2-0.025
+  	while(l>=0 
+    	   if(d_bits[l]==1 then 
+           	if(l==(2*row_bits) then
+	   	      dbCreateParamInst(cv nm_cv nil list(width height) 
+		             "R0" i list(list("diffContactLeft" "boolean" nil)
+                              list("diffContactRight" "boolean" nil) ))
+	   	      dbCreateInst(cv M2M1_cv nil list(width+0.025 height-0.1775) "R90")
+	   	      dbCreateInst(cv M1P_cv nil list(width+0.025 height-0.1775) "R0")
+	   	      dbCreateRect(cv list("poly" "drawing") list(width:height-0.15 width+0.05:height))
+           	      width=width+2*PITCH_M2  l=l-2
+           	      else if(l==0 then
+	   	      dbCreateParamInst(cv nm_cv nil list(width height) 
+		             "R0" i list(list("diffContactRight" "boolean" nil)
+                              list("diffContactLeft" "boolean" nil) ))
+	   	      dbCreateInst(cv M2M1_cv nil list(width+0.025 height-0.1775) "R90")
+	   	      dbCreateInst(cv M1P_cv nil list(width+0.025 height-0.1775) "R0")
+	   	      dbCreateRect(cv list("poly" "drawing") list(width:height-0.15 width+0.05:height))
+	   	      dbCreateInst(cv M2M1_cv nil list(width+0.025+PITCH_M2 height) "R90")
+	   	      dbCreateInst(cv M1N_cv nil list(width+PITCH_M2 height+0.045) "R0")
+	   	      width=width+2*PITCH_M2  l=l-2
+	   	      else
+	   	      dbCreateParamInst(cv nm_cv nil list(width height) 
+	   	                        "R0" i list(
+           	                         list("diffContactRight" "boolean" nil)
+           	                         list("diffContactLeft" "boolean" nil) ))
+	   	      dbCreateInst(cv M2M1_cv nil list(width+0.025 height-0.1775) "R90")
+	   	      dbCreateInst(cv M1P_cv nil list(width+0.025 height-0.1775) "R0")
+	   	      dbCreateRect(cv list("poly" "drawing") list(width:height-0.15 width+0.05:height))
+	    	      width=width+2*PITCH_M2  l=l-2
+		      )   ;; if
+		);if
+    	     else if(l>=2 then 
+			if(d_bits[l-2]==1 then	
+           		    if(l==2 then
+	   			dbCreateParamInst(cv nm_cv nil list(width-0.05+PITCH_M2 height) 
+		                   "R0" i list(
+                              	   list("fingers" "integer" 2)
+			      	   list("diffContactRight" "boolean" nil)	
+                              	   list("diffContactLeft" "boolean" nil) ))
+	   			   dbCreateInst(cv M1P_cv nil list(width+PITCH_M2+0.025 height-0.1775) "R0")
+	   			   dbCreateRect(cv list("poly" "drawing") list(width-0.05+PITCH_M2:height-0.19 width+PITCH_M2:height))
+
+	   			   dbCreateInst(cv M2M1_cv nil list(width+2*PITCH_M2+0.025 height-0.1775) "R90")
+	   			   dbCreateInst(cv M1P_cv nil list(width+2*PITCH_M2+0.035 height-0.1775) "R0")
+	   			   dbCreateRect(cv list("poly" "drawing") list(width+2*PITCH_M2:height-0.15 width+2*PITCH_M2+0.05:height))
+	   			   dbCreateInst(cv M2M1_cv nil list(width+3*PITCH_M2+0.025 height) "R90")
+	   			   dbCreateInst(cv M1N_cv nil list(width+3*PITCH_M2 height+0.045) "R0")
+	   			   width=width+4*PITCH_M2 j++ l=l-4
+           		    else if(l==(2*row_bits) then
+	   			       dbCreateParamInst(cv nm_cv nil list(width+PITCH_M2 height) 
+		             	           "R0" i list(
+                                           list("fingers" "integer" 2)
+			                   list("diffContactLeft" "boolean" nil)
+                                           list("diffContactRight" "boolean" nil) ))
+	   			       dbCreateInst(cv M1P_cv nil list(width+PITCH_M2+0.025 height-0.1775) "R0")
+	   			       dbCreateRect(cv list("poly" "drawing") list(width+PITCH_M2:height-0.15 width+PITCH_M2+0.05:height))
+	   			       dbCreateInst(cv M2M1_cv nil list(width+2*PITCH_M2+0.025 height-0.1775) "R90")
+	   			       dbCreateInst(cv M1P_cv nil list(width+2*PITCH_M2+0.035 height-0.1775) "R0")
+	   			       dbCreateRect(cv list("poly" "drawing") list(width+2*PITCH_M2+0.1:height-0.19 width+2*PITCH_M2+0.05:height))
+	   			       width=width+4*PITCH_M2   j++   l=l-4
+           		         else
+	   				dbCreateParamInst(cv nm_cv nil list(width+PITCH_M2 height) 
+		             		        "R0" i list(
+                             		         list("fingers" "integer" 2)
+                             		         list("diffContactLeft" "boolean" nil) 
+                             		         list("diffContactRight" "boolean" nil) ))
+	   				dbCreateInst(cv M1P_cv nil list(width+PITCH_M2+0.025 height-0.1775) "R0")
+	   				dbCreateRect(cv list("poly" "drawing") list(width+PITCH_M2:height-0.15 width+PITCH_M2+0.05:height))
+	   				dbCreateInst(cv M2M1_cv nil list(width+2*PITCH_M2+0.025 height-0.1775) "R90")
+	   				dbCreateInst(cv M1P_cv nil list(width+2*PITCH_M2+0.035 height-0.1775) "R0")
+	   				dbCreateRect(cv list("poly" "drawing") list(width+2*PITCH_M2+0.05:height-0.19 width+2*PITCH_M2+0.1:height))  
+	   				width=width+4*PITCH_M2  j++ l=l-4
+           			  )) ;;if ;;if 
+    			else if(l==(2*row_bits) then
+	   			dbCreateParamInst(cv nm_cv nil list(width+PITCH_M2 height) 
+		             		"R0" i list(
+			     		 list("diffContactLeft" "boolean" nil)
+                             		 list("diffContactRight" "boolean" nil) ))
+	   			dbCreateInst(cv M1P_cv nil list(width+PITCH_M2+0.025 height-0.1775) "R0")
+	   			dbCreateRect(cv list("poly" "drawing") list(width+PITCH_M2:height-0.15 width+PITCH_M2+0.05:height))
+	   		     else 	
+	   			dbCreateParamInst(cv nm_cv nil list(width+PITCH_M2 height) 
+		             		"R0" i list(
+                             		 list("diffContactLeft" "boolean" nil) 
+                             		 list("diffContactRight" "boolean" nil) ))
+	   			dbCreateInst(cv M1P_cv nil list(width+0.025+PITCH_M2 height-0.1775) "R0")
+	   			dbCreateRect(cv list("poly" "drawing") list(width+PITCH_M2:height-0.15 width+PITCH_M2+0.05:height))
+           		) ; if
+	    	width=width+2*PITCH_M2   l=l-2
+       	));if
+       );if
+) ;while
+
+  width = -b_on_left*delW_buff-0.3575-0.185-0.14-(2*row_bits-1)*PITCH_M2-0.395-d_no*((row_bits+1)*2*PITCH_M2+0.46)
+  if(flagV==0 then
+  	   dbCreateParamInst(cv pm_cv nil list(width height) "R0" i+1 list(
+  		  list("w" "float" pm_dw)))
+  	   dbCreateInst(cv M2M1_cv nil list(width+0.025+0.035 height-0.1625) "R90")
+  	   dbCreateInst(cv M1P_cv nil list(width+0.025+0.035 height-0.1625) "R0")
+  	   dbCreateRect(cv list("poly" "drawing") list(width:height-0.1675 width+0.05:height))
+  	   dbCreateRect(cv list("metal1" "drawing") list(width+0.09:height width+0.09+0.2:height+0.065))
+  else
+	   temp = pm_dw-0.09
+	   if(height-temp-0.055-0.275-(del_h*(i-1)+wl_posi[d_no]+pm_dw+0.055)<-0.0025 then	    
+	   	temp=-(del_h*(i-1)+wl_posi[d_no]+pm_dw+0.055+0.075+0.2)+height)
+
+	   	dbCreateParamInst(cv pm_cv nil list(width height-temp) "R0" i+1 list(
+		  list("w" "float" pm_dw)))
+	   	dbCreateInst(cv M2M1_cv nil list(width+0.025+0.035 height-0.1625-temp) "R90")
+	   	dbCreateInst(cv M1P_cv nil list(width+0.025+0.035 height-0.1625-temp) "R0")
+	   	dbCreateRect(cv list("poly" "drawing") list(width:height-0.1675-temp width+0.05:height))
+	   	wref = -b_on_left*delW_buff-0.3575-d_no*((row_bits+1)*2*PITCH_M2+0.46)
+	   	if(height-temp+PITCH_M1/4>height then
+	   	    dbCreatePath(cv "metal1" list(wref-0.185-(2*row_bits+1)*PITCH_M2+0.025:height+0.045 
+					 wref-0.185-(2*row_bits+1)*PITCH_M2+0.025:height-temp+PITCH_M1/4
+					 width+PITCH_M2/2:height-temp+PITCH_M1/4) 0.065)
+	   	else
+	   	    dbCreatePath(cv "metal1" list(wref-0.185-(2*row_bits+1)*PITCH_M2+0.025:height+0.045 
+					 width+PITCH_M2/2:height+0.045) 0.065)
+	        )
+  ) ;; if
+
+   width = -b_on_left*delW_buff-0.3575-d_no*((row_bits+1)*2*PITCH_M2+0.46)
+   temp=-0.185-0.14-(2*row_bits-1)*PITCH_M2
+   dbCreatePath(cv "pwell" list(width+temp-0.185:height+0.045 width:height+0.045) 0.2)
+   dbCreateInst(cv M2M3_cvB nil list(width+temp-PITCH_M2 height) "R0")
+   dbCreateInst(cv M1N_cv nil list(width+temp-PITCH_M2+0.025 height+0.045) "R0")
+   dbCreateInst(cv M2M1_cv nil list(width+temp-PITCH_M2 height) "R90")
+
+   if(flagV==1 then
+      temp1=d_no*((row_bits+1)*2*PITCH_M2+0.46)+2*(row_bits+1)*PITCH_M2+0.185+delW_buff*buffer_no
+      temp2=del_h*(i+1)-wl_posi[2*d_no]
+   else
+      temp1=d_no*((row_bits+1)*2*PITCH_M2+0.46)+2*(row_bits+1)*PITCH_M2+0.185+delW_buff*(b_on_left-1-buffer_no)
+      temp2=del_h*i+wl_posi[2*d_no]
+   );if
+
+   width = width-(row_bits*2+1)*PITCH_M2-0.185
+   dbCreatePath(cv "metal3" list(width:height width:temp2 width+temp1:temp2) 0.07)
+   dbCreatePath(cv "metal3" list(width+temp1+delW_buff-5*PITCH_M2:temp2  -0.11:temp2) 0.07)
+   
+   ;; NMOS in series connection by acitve placement
+   width = -b_on_left*delW_buff-0.3575-0.185-d_no*((row_bits+1)*2*PITCH_M2+0.46)
+   dbCreateRect(cv list("active" "drawing") list(width-(row_bits*2+1)*PITCH_M2:height width:height+0.09))
+   dbCreateRect(cv list("nimplant" "drawing") list(width-(row_bits*2+1)*PITCH_M2:height width:height+0.09))
+   
+   ;; Pwell placement between last buffer and 1st decoder (to avoid DRC)
+   if(d_no==0 then
+   	width = -b_on_left*delW_buff-0.3575
+   	dbCreatePath(cv "pwell" list(width-PITCH_M2:height+0.045 width+0.105+0.115:height+0.045) 0.2)
+   );; if
+
+   if( flagV==0 then flagV=1
+   else flagV=0)
+
+   );;;;for 
+   buffer_no++
+ );; top for loop
+
+for(d_no 0 b_on_left-1
+     width = -0.3575-0.13-b_on_left*delW_buff-d_no*((row_bits+1)*2*PITCH_M2+0.46)
+     dbCreatePath(cv "metal2" list(width+0.085:-3.5*PITCH_M2 width+0.085:D*del_h) 0.07); GND wire
+     dbCreateInst(cv M2M1_cv nil list(width+0.085 -3.5*PITCH_M2) "R0"); GND wire
+     width = width-(row_bits*2+1)*PITCH_M2
+     dbCreatePath(cv "pwell" list(width:0 width:D*del_h) 0.2) ; NMOS
+     dbCreateInst(cv PTAP_cv nil list(width 0.1) "R0")
+     dbCreatePath(cv "metal1" list(width:0.1 width:-3.5*PITCH_M2-PITCH_M1/2) 0.065)
+     dbCreatePath(cv "nwell" list(width-0.285:-0.1 width-0.285:D*del_h) 0.37) ;for PMOS
+     dbCreateInst(cv NTAP_cv nil list(width-0.38 -0.1) "R0")
+     dbCreatePath(cv "metal1" list(width-0.38:-0.1 width-0.38:D*del_h+2*PITCH_M2) 0.065) ; VDD wire
+     if(d_no==b_on_left-1 then
+     	dbCreatePath(cv "metal1" list(-PITCH_M2:D*del_h+2*PITCH_M2 
+     	                              width-0.38-PITCH_M1:D*del_h+2*PITCH_M2) 0.065);VDD
+     	dbCreateInst(cv M2M3_cv nil list(-3*PITCH_M2 D*del_h+2*PITCH_M2) "R90")
+     	dbCreateInst(cv M2M1_cv1 nil list(-3*PITCH_M2+PITCH_M2/4 D*del_h+2*PITCH_M2) "R90")
+     	dbCreatePath(cv "metal1" list(width:-3.5*PITCH_M2 -PITCH_M2:-3.5*PITCH_M2 -PITCH_M2:0.00 0.00:0.00) 0.065);GND
+       ) 
+   )
+
+
+

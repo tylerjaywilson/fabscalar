@@ -1,0 +1,30 @@
+************************************************************************
+* auCdl Netlist:
+* 
+* Library Name:  dual_bitline
+* Top Cell Name: sense_amp
+* View Name:     schematic
+* Netlisted on:  Jun 29 18:27:13 2009
+************************************************************************
+
+*.GLOBAL gnd!
++        vdd!
+
+*.PIN gnd!
+*+    vdd!
+
+************************************************************************
+* Library Name: dual_bitline
+* Cell Name:    sense_amp
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT sense_amp q qbar se
+*.PININFO se:I q:B qbar:B
+MM4 net032 se gnd! gnd! NMOS_VTL W=360n L=50n
+MM1 q qbar net032 gnd! NMOS_VTL W=360n L=50n
+MM0 qbar q net032 gnd! NMOS_VTL W=360n L=50n
+MM3 q qbar vdd! vdd! PMOS_VTL W=360n L=50n
+MM2 qbar q vdd! vdd! PMOS_VTL W=360n L=50n
+.ENDS
+

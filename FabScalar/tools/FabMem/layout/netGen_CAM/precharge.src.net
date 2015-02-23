@@ -1,0 +1,20 @@
+.PARAM
+
+*.GLOBAL vdd!
+
+
+*.PIN vdd!
+
+
+
+
+.SUBCKT precharge clk btl
+.param w1=360n
+MM1 btl clk vdd! vdd! PMOS_VTL W='w1' L=50n
+.ENDS
+
+.SUBCKT precharge72 clk btl
+MM1 btl clk vdd! vdd! PMOS_VTL W=720n L=50n
+.ENDS
+
+

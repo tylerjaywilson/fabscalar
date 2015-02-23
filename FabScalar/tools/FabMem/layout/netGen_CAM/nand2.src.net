@@ -1,0 +1,33 @@
+************************************************************************
+* auCdl Netlist:
+* 
+* Library Name:  dual_bitline
+* Top Cell Name: nand2
+* View Name:     schematic
+* Netlisted on:  Feb 27 11:14:11 2010
+************************************************************************
+
+*.EQUATION
+*.SCALE METER
+.PARAM
+
+*.GLOBAL vdd!
++        gnd!
+
+*.PIN vdd!
+*+    gnd!
+
+************************************************************************
+* Library Name: dual_bitline
+* Cell Name:    nand2
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT nand2 CW cl_pre op
+*.PININFO CW:I cl_pre:I op:O
+MM1 net3 cl_pre gnd! gnd! NMOS_VTL W=180n L=50n
+MM0 op CW net3 gnd! NMOS_VTL W=180n L=50n
+MM3 op cl_pre vdd! vdd! PMOS_VTL W=180n L=50n
+MM2 op CW vdd! vdd! PMOS_VTL W=180n L=50n
+.ENDS
+

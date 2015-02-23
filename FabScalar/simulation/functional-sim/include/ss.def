@@ -1,0 +1,1114 @@
+/* This file is a part of the SimpleScalar tool suite written by
+ * Todd M. Austin, University of Wisconsin - Madison, Computer Sciences
+ * Department as a part of the Multiscalar Research Project.
+ *  
+ * The SimpleScalar x86 port was written by Steve Bennett.
+ * 
+ * The tool suite is currently maintained by Doug Burger.
+ * 
+ * Copyright (C) 1994, 1995, 1996 by Todd M. Austin
+ *
+ * This source file is distributed in the hope that it will be useful,
+ * but without any warranty.  No author or distributor accepts
+ * any responsibility for the consequences of its use.
+ *
+ * Everyone is granted permission to copy, modify and redistribute
+ * this source file under the following conditions:
+ *
+ *    Permission is granted to anyone to make or distribute copies
+ *    of this source code, either as received or modified, in any
+ *    medium, provided that all copyright notices, permission and
+ *    nonwarranty notices are preserved, and that the distributor
+ *    grants the recipient permission for further redistribution as
+ *    permitted by this document.
+ *
+ *    Permission is granted to distribute this file in compiled
+ *    or executable form under the same conditions that apply for
+ *    source code, provided that either:
+ *
+ *    A. it is accompanied by the corresponding machine-readable
+ *       source code,
+ *    B. it is accompanied by a written offer, with no time limit,
+ *       to give anyone a machine-readable copy of the corresponding
+ *       source code in return for reimbursement of the cost of
+ *       distribution.  This written offer must permit verbatim
+ *       duplication by anyone, or
+ *    C. it is distributed by someone who received only the
+ *       executable form, and is accompanied by a copy of the
+ *       written offer of source code that they received concurrently.
+ *
+ * In other words, you are welcome to use, share and improve this
+ * source file.  You are forbidden to forbid anyone else to use, share
+ * and improve what you give them.
+ *
+ * INTERNET: dburger@cs.wisc.edu
+ * US Mail:  1210 W. Dayton Street, Madison, WI 53706
+ */
+
+/* This doesn't look like -*- C -*-, but it is! */
+DEFFU(IntALU,		"fu-int-ALU")
+DEFFU(IntMULT,		"fu-int-multiply")
+DEFFU(IntDIV,		"fu-int-divide")
+DEFFU(FloatADD,		"fu-FP-add/sub")
+DEFFU(FloatCMP,		"fu-FP-comparison")
+DEFFU(FloatCVT,		"fu-FP-conversion")
+DEFFU(FloatMULT,	"fu-FP-multiply")
+DEFFU(FloatDIV,		"fu-FP-divide")
+DEFFU(FloatSQRT,	"fu-FP-sqrt")
+DEFFU(RdPort,		"rd-port")
+DEFFU(WrPort,		"wr-port")
+
+DEFINST(NOP,		0x00,
+	"nop",		"",
+	IntALU,		F_ICOMP,
+	NA, NA,		NA, NA, NA,
+	/* do nothing */(0),
+	1, NADA, NADA)
+
+/*
+ * control operations
+ */
+
+DEFINST(JUMP,			0x01,
+	"j",			"J",
+	NA, 			F_CTRL|F_UNCOND,
+	NA, NA, 		NA, NA, NA,
+	SET_NPC((CPC & 036000000000) | (TARG << 2)),
+	1, NADA, NADA)
+DEFINST(JAL,			0x02,
+	"jal",			"J",
+	IntALU,			F_CTRL|F_UNCOND,
+	GPR(31), NA,	 	NA, NA, NA,
+	(SET_NPC((CPC & 036000000000) | (TARG << 2)), SET_GPR(31, CPC + 8)),
+	1, NADA, (RDST(31,GPR(31))))
+DEFINST(JR, 			0x03,
+	"jr", 			"s", 
+	NA, 			F_CTRL|F_UNCOND,
+	NA, NA,			GPR(RS), NA, NA,
+	(TALIGN(GPR(RS)), SET_NPC(GPR(RS))),
+	1, (RSRC(RS,GPR(RS))), NADA)
+DEFINST(JALR,	 		0x04,
+	"jalr", 		"d,s",
+	IntALU,			F_CTRL|F_UNCOND,
+	GPR(RD), NA,		GPR(RS), NA, NA,
+	(TALIGN(GPR(RS)), SET_GPR(RD, CPC + 8), SET_NPC(GPR(RS))),
+	1, (RSRC(RS,GPR(RS))), (RDST(RD,GPR(RD))))
+
+DEFINST(BEQ,			0x05,
+	"beq",			"s,t,j",
+	IntALU,			F_CTRL|F_COND,
+	NA, NA,			GPR(RS), GPR(RT), NA,
+	(GPR(RS) == GPR(RT)) ? SET_NPC(CPC + 8 + (OFS << 2)) : 0,
+	1, (RSRC(RS,GPR(RS)), RSRC(RT,GPR(RT))), NADA)
+DEFINST(BNE,			0x06,
+	"bne",			"s,t,j",
+	IntALU,			F_CTRL|F_COND,
+	NA, NA,			GPR(RS), GPR(RT), NA,
+	(GPR(RS) != GPR(RT)) ? SET_NPC(CPC + 8 + (OFS << 2)) : 0,
+	1, (RSRC(RS,GPR(RS)), RSRC(RT,GPR(RT))), NADA)
+DEFINST(BLEZ,			0x07,
+	"blez",			"s,j",
+	IntALU,			F_CTRL|F_COND,
+	NA, NA,			GPR(RS), NA, NA,
+	(GPR(RS) <= 0) ? SET_NPC(CPC + 8 + (OFS << 2)) : 0,
+	1, (RSRC(RS,GPR(RS))), NADA)
+DEFINST(BGTZ,			0x08,
+	"bgtz",			"s,j",
+	IntALU,			F_CTRL|F_COND,
+	NA, NA,			GPR(RS), NA, NA,
+	(GPR(RS) > 0) ? SET_NPC(CPC + 8 + (OFS << 2)) : 0,
+	1, (RSRC(RS,GPR(RS))), NADA)
+DEFINST(BLTZ,	 		0x09,
+	"bltz", 		"s,j", 
+	IntALU, 		F_CTRL|F_COND,
+	NA, NA,			GPR(RS), NA, NA,
+	(GPR(RS) < 0) ? SET_NPC(CPC + 8 + (OFS << 2)) : 0,
+	1, (RSRC(RS,GPR(RS))), NADA)
+DEFINST(BGEZ, 			0x0a,
+	"bgez", 		"s,j", 
+	IntALU, 		F_CTRL|F_COND,
+	NA, NA,			GPR(RS), NA, NA,
+	(GPR(RS) >= 0) ? SET_NPC(CPC + 8 + (OFS << 2)) : 0,
+	1, (RSRC(RS,GPR(RS))), NADA)
+DEFINST(BC1F, 			0x0b,
+	"bc1f", 		"j", 
+	IntALU,			F_CTRL|F_COND,
+	NA, NA,			FCC, NA, NA,
+	(!FCC) ? SET_NPC(CPC + 8 + (OFS << 2)) : 0,
+	1, (RSRC(FCC_ID,FCC)), NADA)
+DEFINST(BC1T, 			0x0c,
+	"bc1t", 		"j", 
+	IntALU,			F_CTRL|F_COND,
+	NA, NA,			FCC, NA, NA,
+	(FCC) ? SET_NPC(CPC + 8 + (OFS << 2)) : 0,
+	1, (RSRC(FCC_ID,FCC)), NADA)
+
+/*
+ * load/store operations
+ *
+ * NOTE: the out-of-order issue simulator(s) require that the
+ * address dependencies of loads and stores be contained in input
+ * dependency slots 1 and 2, slot 0 is used for the input of
+ * the load/store value
+ */
+
+DEFINST(LB,			0x20,
+	"lb",			"t,o(b)",
+	RdPort,			F_MEM|F_LOAD|F_DISP,
+	GPR(RT), CGPR(BS),	NA, GPR(BS), NA,
+	INC_DEC(SET_GPR(RT, READ_SIGNED_BYTE(GPR(BS)+OFS)), BS, 1),
+	(AGEN_LATENCY + ACCESS_LATENCY),
+	(RSRC_A(BS,GPR(BS)), MSRC_B(GPR(BS)+OFS)), (RDST(RT,GPR(RT))))
+DEFINST(LBU, 			0x22, 
+	"lbu", 			"t,o(b)",
+	RdPort, 		F_MEM|F_LOAD|F_DISP,
+	GPR(RT), CGPR(BS),	NA, GPR(BS), NA,
+	INC_DEC(SET_GPR(RT, READ_UNSIGNED_BYTE(GPR(BS)+OFS)), BS, 1),
+	(AGEN_LATENCY + ACCESS_LATENCY),
+	(RSRC_A(BS,GPR(BS)), MSRC_B(GPR(BS)+OFS)), (RDST(RT,GPR(RT))))
+DEFINST(LH, 			0x24,
+	"lh",			"t,o(b)",
+	RdPort,			F_MEM|F_LOAD|F_DISP,
+	GPR(RT), CGPR(BS),	NA, GPR(BS), NA,
+	INC_DEC(SET_GPR(RT, READ_SIGNED_HALF(GPR(BS)+OFS)), BS, 2),
+	(AGEN_LATENCY + ACCESS_LATENCY),
+	(RSRC_A(BS,GPR(BS)), MSRC_H(GPR(BS)+OFS)), (RDST(RT,GPR(RT))))
+DEFINST(LHU, 			0x26, 
+	"lhu", 			"t,o(b)",
+	RdPort, 		F_MEM|F_LOAD|F_DISP,
+	GPR(RT), CGPR(BS),	NA, GPR(BS), NA,
+	INC_DEC(SET_GPR(RT, READ_UNSIGNED_HALF(GPR(BS)+OFS)), BS, 2),
+	(AGEN_LATENCY + ACCESS_LATENCY),
+	(RSRC_A(BS,GPR(BS)), MSRC_H(GPR(BS)+OFS)), (RDST(RT,GPR(RT))))
+DEFINST(LW,			0x28,
+	"lw", 			"t,o(b)",
+	RdPort,			F_MEM|F_LOAD|F_DISP,
+	GPR(RT), CGPR(BS),	NA, GPR(BS), NA,
+	INC_DEC(SET_GPR(RT, READ_WORD(GPR(BS)+OFS)), BS, 4),
+	(AGEN_LATENCY + ACCESS_LATENCY),
+	(RSRC_A(BS,GPR(BS)), MSRC_W(GPR(BS)+OFS)), (RDST(RT,GPR(RT))))
+DEFINST(DLW,			0x29,
+	"dlw",			"t,o(b)",
+	RdPort,			F_MEM|F_LOAD|F_DISP,
+	GPR_D(RT), CGPR(BS),	NA, GPR(BS), NA,
+	INC_DEC((INTALIGN(RT), temp_bs = GPR(BS),
+		 SET_GPR((RT)^sim_swap_words, READ_WORD(temp_bs+OFS)),
+		 SET_GPR(((RT)+1)^sim_swap_words, READ_WORD(temp_bs+OFS+4))),
+		BS, 8),
+	(AGEN_LATENCY + ACCESS_LATENCY),
+	(RSRC_A(BS,GPR(BS)), MSRC_W(GPR(BS)+OFS)),
+	(RDST(RT,GPR(RT)), RDST((RT)+1,GPR((RT)+1))))
+DEFINST(L_S, 			0x2a,
+	"l.s",			"T,o(b)",
+	RdPort,			F_MEM|F_LOAD|F_DISP,
+	FPR_L(FT), CGPR(BS),	NA, GPR(BS), NA,
+	INC_DEC(SET_FPR_L(FT, READ_WORD(GPR(BS)+OFS)), BS, 4),
+	(AGEN_LATENCY + ACCESS_LATENCY),
+	(RSRC_A(BS,GPR(BS)), MSRC_W(GPR(BS)+OFS)),
+	(RDST((FT) + FPR_BASE, FPR_L(FT))))
+DEFINST(L_D,			0x2b,
+	"l.d",			"T,o(b)",
+	RdPort,			F_MEM|F_LOAD|F_DISP,
+	FPR_D(FT), CGPR(BS),	NA, GPR(BS), NA,
+	INC_DEC((FPALIGN(FT),
+		 SET_FPR_L((FT)^sim_swap_words, READ_WORD(GPR(BS)+OFS)),
+		 SET_FPR_L(((FT)+1)^sim_swap_words, READ_WORD(GPR(BS)+OFS+4))),
+		BS, 8),
+	(AGEN_LATENCY + ACCESS_LATENCY), 
+	(RSRC_A(BS,GPR(BS)), MSRC_W(GPR(BS)+OFS)),
+	(RDST((FT) + FPR_BASE, FPR_L(FT)),
+	 RDST((FT) + 1 + FPR_BASE, FPR_L((FT)+1))))
+
+
+/* ER 09-14-04: Fixed lwl/lwr/swl/swr code. */
+/* VKR: This version is similar to SS 3.0.  */
+
+DEFINST(LWL,      0x2c,
+        "lwl",      "t,o(b)",
+        RdPort,     F_MEM|F_LOAD|F_DISP,
+        GPR(RT), NA,    NA, GPR(BS), NA,
+(SET_GPR(RT, LWL_MACRO((GPR(BS) + OFS), (READ_WORD(WORDALIGN(GPR(BS) + OFS))), (GPR(RT))))),
+        (AGEN_LATENCY + ACCESS_LATENCY),
+        (RSRC_A(BS,GPR(BS)), RSRC(RT,GPR(RT)), MSRC_WL(GPR(BS)+OFS)),
+        (RDST(RT,GPR(RT))))
+
+DEFINST(LWR,      0x2d,
+        "lwr",      "t,o(b)",
+        RdPort,     F_MEM|F_LOAD|F_DISP,
+        GPR(RT), NA,    NA, GPR(BS), NA,
+(SET_GPR(RT, LWR_MACRO((GPR(BS) + OFS), (READ_WORD(WORDALIGN(GPR(BS) + OFS))), (GPR(RT))))),
+        (AGEN_LATENCY + ACCESS_LATENCY),
+        (RSRC_A(BS,GPR(BS)), RSRC(RT,GPR(RT)), MSRC_WR(GPR(BS)+OFS)),
+        (RDST(RT,GPR(RT))))
+
+
+DEFINST(SB, 			0x30, 
+	"sb", 			"t,o(b)",
+	WrPort, 		F_MEM|F_STORE|F_DISP,
+	CGPR(BS), NA,	 	GPR(RT), GPR(BS), NA,
+	INC_DEC(WRITE_BYTE(GPR(RT), GPR(BS)+OFS), BS, 1),
+	(AGEN_LATENCY),
+	(RSRC_A(BS,GPR(BS)), RSRC(RT,GPR(RT)), MDST_B(GPR(BS)+OFS)), NADA)
+DEFINST(SH, 			0x32, 
+	"sh", 			"t,o(b)",
+	WrPort, 		F_MEM|F_STORE|F_DISP,
+	CGPR(BS), NA,	 	GPR(RT), GPR(BS), NA,
+	INC_DEC(WRITE_HALF(GPR(RT), GPR(BS)+OFS), BS, 2),
+	(AGEN_LATENCY),
+	(RSRC_A(BS,GPR(BS)), RSRC(RT,GPR(RT)), MDST_H(GPR(BS)+OFS)), NADA)
+DEFINST(SW, 			0x34, 
+	"sw", 			"t,o(b)",
+	WrPort, 		F_MEM|F_STORE|F_DISP,
+	CGPR(BS), NA,	 	GPR(RT), GPR(BS), NA,
+	INC_DEC(WRITE_WORD(GPR(RT), GPR(BS)+OFS), BS, 4),
+	(AGEN_LATENCY),
+	(RSRC_A(BS,GPR(BS)), RSRC(RT,GPR(RT)), MDST_W(GPR(BS)+OFS)), NADA)
+DEFINST(DSW,			0x35,
+	"dsw",			"t,o(b)",
+	WrPort,			F_MEM|F_STORE|F_DISP,
+	CGPR(BS), NA,		GPR_D(RT), GPR(BS), NA,
+	INC_DEC((INTALIGN(RT),
+		 WRITE_WORD(GPR((RT)^sim_swap_words), GPR(BS)+OFS),
+		 WRITE_WORD(GPR(((RT)+1)^sim_swap_words), GPR(BS)+OFS+4)),
+		BS, 8),
+	(AGEN_LATENCY),
+	(RSRC_A(BS,GPR(BS)), RSRC(RT,GPR(RT)), RSRC((RT)+1,GPR((RT)+1)),
+	 MDST_W(GPR(BS)+OFS)), NADA)
+DEFINST(DSZ,			0x38,
+	"dsz",			"o(b)",
+	WrPort,			F_MEM|F_STORE|F_DISP,
+	CGPR(BS), NA,		NA, GPR(BS), NA,
+	INC_DEC((WRITE_WORD(GPR(0), GPR(BS)+OFS),
+		 WRITE_WORD(GPR(0), GPR(BS)+OFS+4)),
+		BS, 8),
+	(AGEN_LATENCY),
+	(RSRC_A(BS,GPR(BS)), MDST_W(GPR(BS)+OFS)), NADA)
+DEFINST(S_S, 			0x36, 
+	"s.s", 			"T,o(b)",
+	WrPort, 		F_MEM|F_STORE|F_DISP,
+	CGPR(BS), NA,		FPR_L(FT), GPR(BS), NA,
+	INC_DEC(WRITE_WORD(FPR_L(FT), GPR(BS)+OFS), BS, 4),
+	(AGEN_LATENCY),
+	(RSRC_A(BS,GPR(BS)), RSRC((FT)+FPR_BASE,FPR_L(FT)),
+         MDST_W(GPR(BS)+OFS)), NADA)
+DEFINST(S_D,			0x37,
+	"s.d",			"T,o(b)",
+	WrPort,			F_MEM|F_STORE|F_DISP,
+	CGPR(BS), NA,		FPR_D(FT), GPR(BS), NA,
+	INC_DEC((FPALIGN(FT),
+		 WRITE_WORD(FPR_L(FT), GPR(BS)+OFS),
+		 WRITE_WORD(FPR_L((FT)+1), GPR(BS)+OFS+4)),
+		BS, 4),
+	(AGEN_LATENCY),
+	(RSRC_A(BS,GPR(BS)),
+	 RSRC((FT)+FPR_BASE,FPR_L(FT)), RSRC((FT)+1+FPR_BASE,FPR_L((FT)+1)),
+	 MDST_W(GPR(BS)+OFS)), NADA)
+
+
+/* ER 09-14-04: Fixed lwl/lwr/swl/swr code. */
+/* VKR: This version is similar to SS 3.0.  */
+
+DEFINST(SWL,      0x39,
+        "swl",      "t,o(b)",
+        WrPort,     F_MEM|F_STORE|F_DISP,
+        NA, NA,     GPR(RT), GPR(BS), NA,
+(WRITE_WORD(SWL_MACRO((GPR(BS) + OFS), (GPR(RT)), (READ_WORD(WORDALIGN(GPR(BS) + OFS)))), WORDALIGN(GPR(BS) + OFS))),
+        (AGEN_LATENCY),
+        (RSRC_A(BS,GPR(BS)), RSRC(RT,GPR(RT)), MDST_WL(GPR(BS)+OFS)), NADA)
+
+DEFINST(SWR,      0x3a,
+        "swr",      "t,o(b)",
+        WrPort,     F_MEM|F_STORE|F_DISP,
+        NA, NA,     GPR(RT), GPR(BS), NA,
+(WRITE_WORD(SWR_MACRO((GPR(BS) + OFS), (GPR(RT)), (READ_WORD(WORDALIGN(GPR(BS) + OFS)))), WORDALIGN(GPR(BS) + OFS))),
+        (AGEN_LATENCY),
+        (RSRC_A(BS,GPR(BS)), RSRC(RT,GPR(RT)), MDST_WR(GPR(BS)+OFS)), NADA)
+
+
+/* reg+reg loads and stores */
+
+DEFINST(LB_RR,			0xc0,
+	"lb",			"t,(b+d)",
+	RdPort,			F_MEM|F_LOAD|F_RR,
+	GPR(RT), CGPR(BS),	NA, GPR(BS), GPR(RD),
+	INC_DEC(SET_GPR(RT, READ_SIGNED_BYTE(GPR(BS)+GPR(RD))), BS, 1),
+	(AGEN_LATENCY + ACCESS_LATENCY),
+	(RSRC_A(BS,GPR(BS)), RSRC_A(RD,GPR(RD)), MSRC_B(GPR(BS)+GPR(RD))),
+	(RDST(RT,GPR(RT))))
+DEFINST(LBU_RR,			0xc1, 
+	"lbu", 			"t,(b+d)",
+	RdPort, 		F_MEM|F_LOAD|F_RR,
+	GPR(RT), CGPR(BS),	NA, GPR(BS), GPR(RD),
+	INC_DEC(SET_GPR(RT, READ_UNSIGNED_BYTE(GPR(BS)+GPR(RD))), BS, 1),
+	(AGEN_LATENCY + ACCESS_LATENCY),
+	(RSRC_A(BS,GPR(BS)), RSRC_A(RD,GPR(RD)), MSRC_B(GPR(BS)+GPR(RD))),
+	(RDST(RT,GPR(RT))))
+DEFINST(LH_RR,	 		0xc2,
+	"lh",			"t,(b+d)",
+	RdPort,			F_MEM|F_LOAD|F_RR,
+	GPR(RT), CGPR(BS),	NA, GPR(BS), GPR(RD),
+	INC_DEC(SET_GPR(RT, READ_SIGNED_HALF(GPR(BS)+GPR(RD))), BS, 2),
+	(AGEN_LATENCY + ACCESS_LATENCY),
+	(RSRC_A(BS,GPR(BS)), RSRC_A(RD,GPR(RD)), MSRC_H(GPR(BS)+GPR(RD))),
+	(RDST(RT,GPR(RT))))
+DEFINST(LHU_RR,			0xc3, 
+	"lhu", 			"t,(b+d)",
+	RdPort, 		F_MEM|F_LOAD|F_RR,
+	GPR(RT), CGPR(BS),	NA, GPR(BS), GPR(RD),
+	INC_DEC(SET_GPR(RT, READ_UNSIGNED_HALF(GPR(BS)+GPR(RD))), BS, 2),
+	(AGEN_LATENCY + ACCESS_LATENCY),
+	(RSRC_A(BS,GPR(BS)), RSRC_A(RD,GPR(RD)), MSRC_H(GPR(BS)+GPR(RD))),
+	(RDST(RT,GPR(RT))))
+DEFINST(LW_RR,			0xc4,
+	"lw", 			"t,(b+d)",
+	RdPort,			F_MEM|F_LOAD|F_RR,
+	GPR(RT), CGPR(BS),	NA, GPR(BS), GPR(RD),
+	INC_DEC(SET_GPR(RT, READ_WORD(GPR(BS)+GPR(RD))), BS, 4),
+	(AGEN_LATENCY + ACCESS_LATENCY),
+	(RSRC_A(BS,GPR(BS)), RSRC_A(RD,GPR(RD)), MSRC_W(GPR(BS)+GPR(RD))),
+	(RDST(RT,GPR(RT))))
+DEFINST(DLW_RR,			0xce,
+	"dlw",			"t,(b+d)",
+	RdPort,			F_MEM|F_LOAD|F_RR,
+	GPR_D(RT), CGPR(BS),	NA, GPR(BS), GPR(RD),
+	INC_DEC((INTALIGN(RT),
+		 temp_bs = GPR(BS), temp_rd = GPR(RD),
+		 SET_GPR((RT)^sim_swap_words, READ_WORD(temp_bs+temp_rd)),
+		 SET_GPR(((RT)+1)^sim_swap_words,
+			 READ_WORD(temp_bs+temp_rd+4))),
+		BS, 8),
+	(AGEN_LATENCY + ACCESS_LATENCY),
+	(RSRC_A(BS,GPR(BS)), RSRC_A(RD,GPR(RD)), MSRC_W(GPR(BS)+GPR(RD))),
+	(RDST(RT,GPR(RT)), RDST((RT)+1,GPR((RT)+1))))
+DEFINST(L_S_RR,			0xc5,
+	"l.s",	 		"T,(b+d)",
+	RdPort,			F_MEM|F_LOAD|F_RR,
+	FPR_L(FT), CGPR(BS),	NA, GPR(BS), GPR(RD),
+	INC_DEC(SET_FPR_L(FT, READ_WORD(GPR(BS)+GPR(RD))), BS, 4),
+	(AGEN_LATENCY + ACCESS_LATENCY),
+	(RSRC_A(BS,GPR(BS)), RSRC_A(RD,GPR(RD)), MSRC_W(GPR(BS)+GPR(RD))),
+	(RDST((FT)+FPR_BASE,FPR_L(FT))))
+/* was	INC_DEC(SET_FPR_L(RT, READ_WORD(GPR(BS)+GPR(RD))), BS, 4)) */
+DEFINST(L_D_RR,			0xcf,
+	"l.d",			"T,(b+d)",
+	RdPort,			F_MEM|F_LOAD|F_RR,
+	FPR_D(FT), CGPR(BS),	NA, GPR(BS), GPR(RD),
+	INC_DEC((FPALIGN(FT),
+		 SET_FPR_L((FT)^sim_swap_words, READ_WORD(GPR(BS)+GPR(RD))),
+		 SET_FPR_L(((FT)+1)^sim_swap_words,
+			   READ_WORD(GPR(BS)+GPR(RD)+4))),
+		BS, 8),
+	(AGEN_LATENCY + ACCESS_LATENCY),
+	(RSRC_A(BS,GPR(BS)), RSRC_A(RD,GPR(RD)), MSRC_W(GPR(BS)+GPR(RD))),
+	(RDST((FT)+FPR_BASE,FPR_L(FT)), RDST((FT)+1+FPR_BASE,FPR_L((FT)+1))))
+
+DEFINST(SB_RR, 			0xc6, 
+	"sb", 			"t,(b+d)", 
+	WrPort, 		F_MEM|F_STORE|F_RR,
+	CGPR(BS), NA, 		GPR(RT), GPR(BS), GPR(RD),
+	INC_DEC(WRITE_BYTE(GPR(RT), GPR(BS)+GPR(RD)), BS, 1),
+	(AGEN_LATENCY),
+	(RSRC_A(BS,GPR(BS)), RSRC_A(RD,GPR(RD)), RSRC(RT,GPR(RT)),
+	 MDST_B(GPR(BS)+GPR(RD))), NADA)
+DEFINST(SH_RR,	 		0xc7, 
+	"sh", 			"t,(b+d)", 
+	WrPort,			F_MEM|F_STORE|F_RR,
+	CGPR(BS), NA,	 	GPR(RT), GPR(BS), GPR(RD),
+	INC_DEC(WRITE_HALF(GPR(RT), GPR(BS)+GPR(RD)), BS, 2),
+	(AGEN_LATENCY),
+	(RSRC_A(BS,GPR(BS)), RSRC_A(RD,GPR(RD)), RSRC(RT,GPR(RT)),
+	 MDST_H(GPR(BS)+GPR(RD))), NADA)
+DEFINST(SW_RR,	 		0xc8, 
+	"sw", 			"t,(b+d)", 
+	WrPort, 		F_MEM|F_STORE|F_RR,
+	CGPR(BS), NA, 		GPR(RT), GPR(BS), GPR(RD),
+	INC_DEC(WRITE_WORD(GPR(RT), GPR(BS)+GPR(RD)), BS, 4),
+	(AGEN_LATENCY),
+	(RSRC_A(BS,GPR(BS)), RSRC_A(RD,GPR(RD)), RSRC(RT,GPR(RT)),
+	 MDST_W(GPR(BS)+GPR(RD))), NADA)
+DEFINST(DSW_RR,			0xd0,
+	"dsw",			"t,(b+d)",
+	WrPort,			F_MEM|F_STORE|F_RR,
+	CGPR(BS), NA,		GPR_D(RT), GPR(BS), GPR(RD),
+	INC_DEC((INTALIGN(RT),
+		 WRITE_WORD(GPR((RT)^sim_swap_words), GPR(BS)+GPR(RD)),
+		 WRITE_WORD(GPR(((RT)+1)^sim_swap_words), GPR(BS)+GPR(RD)+4)),
+		BS, 8),
+	(AGEN_LATENCY),
+	(RSRC_A(BS,GPR(BS)), RSRC_A(RD,GPR(RD)),
+	 RSRC(RT,GPR(RT)), RSRC((RT)+1,GPR((RT)+1)),
+	 MDST_W(GPR(BS)+GPR(RD))), NADA)
+DEFINST(DSZ_RR,			0xd1,
+	"dsz",			"(b+d)",
+	WrPort,			F_MEM|F_STORE|F_RR,
+	CGPR(BS), NA,		NA, GPR(BS), GPR(RD),
+	INC_DEC((WRITE_WORD(GPR(0), GPR(BS)+GPR(RD)),
+		 WRITE_WORD(GPR(0), GPR(BS)+GPR(RD)+4)),
+		BS, 8),
+	(AGEN_LATENCY),
+	(RSRC_A(BS,GPR(BS)), RSRC_A(RD,GPR(RD)),
+         MDST_W(GPR(BS)+GPR(RD))), NADA)
+DEFINST(S_S_RR,			0xc9, 
+	"s.s",	 		"T,(b+d)", 
+	WrPort, 		F_MEM|F_STORE|F_RR,
+	CGPR(BS), NA,		FPR_L(FT), GPR(BS), GPR(RD),
+	INC_DEC(WRITE_WORD(FPR_L(FT), GPR(BS)+GPR(RD)), BS, 4),
+	(AGEN_LATENCY),
+	(RSRC_A(BS,GPR(BS)), RSRC_A(RD,GPR(RD)),
+	 RSRC((FT)+FPR_BASE,FPR_L(FT)), MDST_W(GPR(BS)+GPR(RD))), NADA)
+DEFINST(S_D_RR,			0xd2,
+	"s.d",			"T,(b+d)",
+	WrPort,			F_MEM|F_STORE|F_RR,
+	CGPR(BS), NA,		FPR_D(FT), GPR(BS), GPR(RD),
+	INC_DEC((FPALIGN(FT),
+		 WRITE_WORD(FPR_L((FT)^sim_swap_words), GPR(BS)+GPR(RD)),
+		 WRITE_WORD(FPR_L(((FT)+1)^sim_swap_words),
+			    GPR(BS)+GPR(RD)+4)),
+		BS, 8),
+	(AGEN_LATENCY),
+	(RSRC_A(BS,GPR(BS)), RSRC_A(RD,GPR(RD)),
+	 RSRC((FT)+FPR_BASE,FPR_L(FT)),
+	 RSRC((FT)+1+FPR_BASE,FPR_L((FT)+1)),
+         MDST_W(GPR(BS)+GPR(RD))), NADA)
+
+
+/* reg + reg + 4 addressing mode, used to synthesize `l.d r,(s+t)^++' */
+/* FIXME: obsolete */
+DEFINST(L_S_RR_R2,		0xca,
+	"l.s.r2", 		"T,(b+d)",
+	RdPort,			F_MEM|F_LOAD|F_RR,
+	FPR_L(FT), CGPR(BS),	NA, GPR(BS), GPR(RD),
+	INC_DEC(SET_FPR_L(FT, READ_WORD(GPR(BS)+GPR(RD)+4)), BS, 4),
+	1, UNIMP, UNIMP)
+/* was	INC_DEC(SET_FPR_L(RT, READ_WORD(GPR(BS)+GPR(RD)+4)), BS, 4)) */
+/* FIXME: obsolete */
+DEFINST(S_S_RR_R2,		0xcb,
+	"s.s.r2", 		"T,(b+d)", 
+	WrPort, 		F_MEM|F_STORE|F_RR,
+	CGPR(BS), NA,		FPR_L(FT), GPR(BS), GPR(RD),
+	INC_DEC(WRITE_WORD(FPR_L(FT), GPR(BS)+GPR(RD)+4), BS, 4),
+	1, UNIMP, UNIMP)
+/* FIXME: obsolete */
+DEFINST(LW_RR_R2,		0xcc,
+	"lw.r2",		"t,(b+d)",
+	RdPort,			F_MEM|F_LOAD|F_RR,
+	GPR(RT), CGPR(BS),	NA, GPR(BS), GPR(RD),
+	INC_DEC(SET_GPR(RT, READ_WORD(GPR(BS)+GPR(RD)+4)), BS, 4),
+	1, UNIMP, UNIMP)
+/* FIXME: obsolete */
+DEFINST(SW_RR_R2,		0xcd, 
+	"sw.r2", 		"t,(b+d)",
+	WrPort, 		F_MEM|F_STORE|F_RR,
+	CGPR(BS), NA, 		GPR(RT), GPR(BS), GPR(RD),
+	INC_DEC(WRITE_WORD(GPR(RT), GPR(BS)+GPR(RD)+4), BS, 4),
+	1, UNIMP, UNIMP)
+
+
+/*
+ * Integer ALU operations
+ */
+
+DEFINST(ADD,	 		0x40,
+	"add", 			"d,s,t",
+	IntALU, 		F_ICOMP,
+	GPR(RD), NA,		GPR(RS), GPR(RT), NA,
+	(OVER(GPR(RS),GPR(RT)), SET_GPR(RD, GPR(RS) + GPR(RT))),
+	1, (RSRC(RS,GPR(RS)), RSRC(RT,GPR(RT))), (RDST(RD,GPR(RD))))
+DEFINST(ADDI,			0x41,
+	"addi",			"t,s,i",
+	IntALU,			F_ICOMP,
+	GPR(RT), NA, 		GPR(RS), NA, NA,
+	(OVER(GPR(RS),IMM), SET_GPR(RT, GPR(RS) + IMM)),
+	1, (RSRC(RS,GPR(RS))), (RDST(RT,GPR(RT))))
+DEFINST(ADDU, 			0x42,
+	"addu", 		"d,s,t",
+	IntALU, 		F_ICOMP,
+	GPR(RD), NA,		GPR(RS), GPR(RT), NA,
+	SET_GPR(RD, GPR(RS) + GPR(RT)),
+	1, (RSRC(RS,GPR(RS)), RSRC(RT,GPR(RT))), (RDST(RD,GPR(RD))))
+DEFINST(ADDIU,			0x43,
+	"addiu",		"t,s,i",
+	IntALU,			F_ICOMP,
+	GPR(RT), NA, 		GPR(RS), NA, NA,
+	SET_GPR(RT, GPR(RS) + IMM),
+	1, (RSRC(RS,GPR(RS))), (RDST(RT,GPR(RT))))
+
+DEFINST(SUB, 			0x44,
+	"sub", 			"d,s,t",
+	IntALU, 		F_ICOMP,
+	GPR(RD), NA,		GPR(RS), GPR(RT), NA,
+	(UNDER(GPR(RS),GPR(RT)), SET_GPR(RD, GPR(RS) - GPR(RT))),
+	1, (RSRC(RS,GPR(RS)), RSRC(RT,GPR(RT))), (RDST(RD,GPR(RD))))
+DEFINST(SUBU, 			0x45,
+	"subu", 		"d,s,t",
+	IntALU, 		F_ICOMP,
+	GPR(RD), NA,		GPR(RS), GPR(RT), NA,
+	SET_GPR(RD, GPR(RS) - GPR(RT)),
+	1, (RSRC(RS,GPR(RS)), RSRC(RT,GPR(RT))), (RDST(RD,GPR(RD))))
+
+DEFINST(MULT, 			0x46,
+	"mult", 		"s,t", 
+	IntMULT, 		F_ICOMP|F_LONGLAT,
+	HI, LO,			GPR(RT), GPR(RS), NA,
+	InstMULT(inst),
+	3, (RSRC(RS,GPR(RS)), RSRC(RT,GPR(RT))),
+	   (RDST(HI_ID,HI), RDST(LO_ID,LO)))
+DEFINST(MULTU, 			0x47,
+	"multu", 		"s,t", 
+	IntMULT, 		F_ICOMP|F_LONGLAT,
+	HI, LO,			GPR(RT), GPR(RS), NA,
+	InstMULTU(inst),
+	3, (RSRC(RS,GPR(RS)), RSRC(RT,GPR(RT))),
+	   (RDST(HI_ID,HI), RDST(LO_ID,LO)))
+DEFINST(DIV, 			0x48,
+	"div", 			"s,t", 
+	IntDIV, 		F_ICOMP|F_LONGLAT,
+	HI, LO,			GPR(RT), GPR(RS), NA,
+	(DIV0(GPR(RT)), SET_LO(GPR(RS) / GPR(RT)), SET_HI(GPR(RS) % GPR(RT))),
+	11, (RSRC(RS,GPR(RS)), RSRC(RT,GPR(RT))),
+	    (RDST(HI_ID,HI), RDST(LO_ID,LO)))
+DEFINST(DIVU, 			0x49,
+	"divu", 		"s,t", 
+	IntDIV, 		F_ICOMP|F_LONGLAT,
+	HI, LO,			GPR(RT), GPR(RS), NA,
+	(DIV0(GPR(RT)), SET_LO(((unsigned)GPR(RS)) / ((unsigned)GPR(RT))),
+	 SET_HI(((unsigned)GPR(RS)) % ((unsigned)GPR(RT)))),
+	11, (RSRC(RS,GPR(RS)), RSRC(RT,GPR(RT))),
+	    (RDST(HI_ID,HI), RDST(LO_ID,LO)))
+
+DEFINST(MFHI, 			0x4a,
+	"mfhi", 		"d",
+	IntALU, 		F_ICOMP,
+	GPR(RD), NA,		HI, NA, NA,
+	SET_GPR(RD, HI),
+	1, (RSRC(HI_ID,HI)), (RDST(RD,GPR(RD))))
+DEFINST(MTHI, 			0x4b,
+	"mthi", 		"s",
+	IntALU, 		F_ICOMP,
+	HI, NA,			GPR(RS), NA, NA,
+	SET_HI(GPR(RS)),
+	1, (RSRC(RS,GPR(RS))), (RDST(HI_ID,HI)))
+DEFINST(MFLO, 			0x4c,
+	"mflo", 		"d", 
+	IntALU, 		F_ICOMP,
+	GPR(RD), NA,		LO, NA, NA,
+	SET_GPR(RD, LO),
+	1, (RSRC(LO_ID,LO)), (RDST(RD,GPR(RD))))
+DEFINST(MTLO, 			0x4d,
+	"mtlo", 		"s", 
+	IntALU, 		F_ICOMP,
+	LO, NA,			GPR(RS), NA, NA,
+	SET_LO(GPR(RS)),
+	1, (RSRC(RS,GPR(RS))), (RDST(LO_ID,LO)))
+
+/* AND conflicts with GNU defs */
+DEFINST(AND_, 			0x4e,
+	"and", 			"d,s,t",
+	IntALU, 		F_ICOMP,
+	GPR(RD), NA,		GPR(RS), GPR(RT), NA,
+	SET_GPR(RD, GPR(RS) & GPR(RT)),
+	1, (RSRC(RS,GPR(RS)), RSRC(RT,GPR(RT))), (RDST(RD,GPR(RD))))
+DEFINST(ANDI,			0x4f,
+	"andi",			"t,s,u",
+	IntALU,			F_ICOMP,
+	GPR(RT), NA,	 	GPR(RS), NA, NA,
+	SET_GPR(RT, GPR(RS) & UIMM),
+	1, (RSRC(RS,GPR(RS))), (RDST(RT,GPR(RT))))
+DEFINST(OR, 			0x50,
+	"or", 			"d,s,t",
+	IntALU, 		F_ICOMP,
+	GPR(RD), NA,		GPR(RS), GPR(RT), NA,
+	SET_GPR(RD, GPR(RS) | GPR(RT)),
+	1, (RSRC(RS,GPR(RS)), RSRC(RT,GPR(RT))), (RDST(RD,GPR(RD))))
+DEFINST(ORI, 			0x51,
+	"ori",			"t,s,u",
+	IntALU,			F_ICOMP,
+	GPR(RT), NA, 		GPR(RS), NA, NA,
+	SET_GPR(RT, GPR(RS) | UIMM),
+	1, (RSRC(RS,GPR(RS))), (RDST(RT,GPR(RT))))
+DEFINST(XOR, 			0x52,
+	"xor", 			"d,s,t",
+	IntALU, 		F_ICOMP,
+	GPR(RD), NA,		GPR(RS), GPR(RT), NA,
+	SET_GPR(RD, GPR(RS) ^ GPR(RT)),
+	1, (RSRC(RS,GPR(RS)), RSRC(RT,GPR(RT))), (RDST(RD,GPR(RD))))
+DEFINST(XORI, 			0x53,
+	"xori",			"t,s,u",
+	IntALU,			F_ICOMP,
+	GPR(RT), NA, 		GPR(RS), NA, NA,
+	SET_GPR(RT, GPR(RS) ^ UIMM),
+	1, (RSRC(RS,GPR(RS))), (RDST(RT,GPR(RT))))
+DEFINST(NOR, 			0x54,
+	"nor", 			"d,s,t",
+	IntALU, 		F_ICOMP,
+	GPR(RD), NA,		GPR(RS), GPR(RT), NA,
+	SET_GPR(RD, ~(GPR(RS) | GPR(RT))),
+	1, (RSRC(RS,GPR(RS)), RSRC(RT,GPR(RT))), (RDST(RD,GPR(RD))))
+
+DEFINST(SLL, 			0x55,
+	"sll", 			"d,t,H", 
+	IntALU, 		F_ICOMP,
+	GPR(RD), NA,		GPR(RT), NA, NA,
+	SET_GPR(RD, GPR(RT) << SHAMT),
+	1, (RSRC(RT,GPR(RT))), (RDST(RD,GPR(RD))))
+DEFINST(SLLV, 			0x56,
+	"sllv", 		"d,t,s", 
+	IntALU, 		F_ICOMP,
+	GPR(RD), NA,		GPR(RT), GPR(RS), NA,
+	SET_GPR(RD, GPR(RT) << (GPR(RS) & 037)),
+	1, (RSRC(RS,GPR(RS)), RSRC(RT,GPR(RT))), (RDST(RD,GPR(RD))))
+DEFINST(SRL, 			0x57,
+	"srl", 			"d,t,H", 
+	IntALU, 		F_ICOMP,
+	GPR(RD), NA,		GPR(RT), NA, NA,
+	SET_GPR(RD, ((unsigned)GPR(RT)) >> SHAMT),
+	1, (RSRC(RT,GPR(RT))), (RDST(RD,GPR(RD))))
+DEFINST(SRLV, 			0x58,
+	"srlv", 		"d,t,s", 
+	IntALU, 		F_ICOMP,
+	GPR(RD), NA,		GPR(RT), GPR(RS), NA,
+	SET_GPR(RD, ((unsigned)GPR(RT)) >> (GPR(RS) & 037)),
+	1, (RSRC(RS,GPR(RS)), RSRC(RT,GPR(RT))), (RDST(RD,GPR(RD))))
+DEFINST(SRA, 			0x59,
+	"sra", 			"d,t,H", 
+	IntALU, 		F_ICOMP,
+	GPR(RD), NA,		GPR(RT), NA, NA,
+	InstSRA(inst),
+	1, (RSRC(RT,GPR(RT))), (RDST(RD,GPR(RD))))
+DEFINST(SRAV, 			0x5a,
+	"srav", 		"d,t,s",
+	IntALU, 		F_ICOMP,
+	GPR(RD), NA,		GPR(RT), GPR(RS), NA,
+	InstSRAV(inst),
+	1, (RSRC(RS,GPR(RS)), RSRC(RT,GPR(RT))), (RDST(RD,GPR(RD))))
+
+DEFINST(SLT,			0x5b,
+	"slt", 			"d,s,t",
+	IntALU, 		F_ICOMP,
+	GPR(RD), NA,		GPR(RS), GPR(RT), NA,
+	SET_GPR(RD, (GPR(RS) < GPR(RT)) ? 1 : 0),
+	1, (RSRC(RS,GPR(RS)), RSRC(RT,GPR(RT))), (RDST(RD,GPR(RD))))
+DEFINST(SLTI, 			0x5c,
+	"slti",			"t,s,i",
+	IntALU,			F_ICOMP,
+	GPR(RT), NA, 		GPR(RS), NA, NA,
+	SET_GPR(RT, (GPR(RS) < IMM) ? 1 : 0),
+	1, (RSRC(RS,GPR(RS))), (RDST(RT,GPR(RT))))
+DEFINST(SLTU, 			0x5d,
+	"sltu", 		"d,s,t",
+	IntALU, 		F_ICOMP,
+	GPR(RD), NA,		GPR(RS), GPR(RT), NA,
+	SET_GPR(RD, (((unsigned)GPR(RS)) < ((unsigned)GPR(RT))) ? 1 : 0),
+	1, (RSRC(RS,GPR(RS)), RSRC(RT,GPR(RT))), (RDST(RD,GPR(RD))))
+DEFINST(SLTIU,			0x5e,
+	"sltiu",		"t,s,i",
+	IntALU,			F_ICOMP,
+	GPR(RT), NA, 		GPR(RS), NA, NA,
+	SET_GPR(RT, ((unsigned)GPR(RS) < (unsigned)IMM) ? 1 : 0),
+	1, (RSRC(RS,GPR(RS))), (RDST(RT,GPR(RT))))
+
+
+/*
+ * Floating Point ALU operations
+ */
+
+DEFINST(FADD_S,			0x70,
+	"add.s",		"D,S,T",
+	FloatADD,		F_FCOMP,
+	FPR_F(FD), NA,		FPR_F(FS), FPR_F(FT), NA,
+	/* FIXME: check precedences here */
+	(FPALIGN(FD), FPALIGN(FS), FPALIGN(FT),
+	 SET_FPR_F(FD, FPR_F(FS) + FPR_F(FT))),
+	3, (RSRC((FS)+FPR_BASE,FPR_L(FS)), RSRC((FT)+FPR_BASE,FPR_L(FT))),
+	   (RDST((FD)+FPR_BASE,FPR_L(FD))))
+DEFINST(FADD_D,			0x71,
+	"add.d",		"D,S,T",
+	FloatADD,		F_FCOMP,
+	FPR_D(FD), NA,		FPR_D(FS), FPR_D(FT), NA,
+	/* FIXME: check precedences here */
+	(FPALIGN(FD), FPALIGN(FS), FPALIGN(FT),
+	 SET_FPR_D(FD, FPR_D(FS) + FPR_D(FT))),
+	3, (RSRC((FS)+FPR_BASE,FPR_L(FS)), RSRC((FS)+1+FPR_BASE,FPR_L((FS)+1)),
+	    RSRC((FT)+FPR_BASE,FPR_L(FT)), RSRC((FT)+1+FPR_BASE,FPR_L((FT)+1))),
+	   (RDST((FD)+FPR_BASE,FPR_L(FD)), RDST((FD)+1+FPR_BASE,FPR_L((FD)+1))))
+DEFINST(FSUB_S,			0x72,
+	"sub.s",		"D,S,T",
+	FloatADD, 		F_FCOMP,
+	FPR_F(FD), NA,		FPR_F(FS), FPR_F(FT), NA,
+	(FPALIGN(FD), FPALIGN(FS), FPALIGN(FT),
+	 SET_FPR_F(FD, FPR_F(FS) - FPR_F(FT))),
+	3, (RSRC((FS)+FPR_BASE,FPR_L(FS)), RSRC((FT)+FPR_BASE,FPR_L(FT))),
+	   (RDST((FD)+FPR_BASE,FPR_L(FD))))
+DEFINST(FSUB_D,			0x73,
+	"sub.d",		"D,S,T",
+	FloatADD, 		F_FCOMP,
+	FPR_D(FD), NA,		FPR_D(FS), FPR_D(FT), NA,
+	(FPALIGN(FD), FPALIGN(FS), FPALIGN(FT),
+	 SET_FPR_D(FD, FPR_D(FS) - FPR_D(FT))),
+	3, (RSRC((FS)+FPR_BASE,FPR_L(FS)), RSRC((FS)+1+FPR_BASE,FPR_L((FS)+1)),
+            RSRC((FT)+FPR_BASE,FPR_L(FT)), RSRC((FT)+1+FPR_BASE,FPR_L((FT)+1))),
+           (RDST((FD)+FPR_BASE,FPR_L(FD)), RDST((FD)+1+FPR_BASE,FPR_L((FD)+1))))
+DEFINST(FMUL_S,			0x74,
+	"mul.s",		"D,S,T",
+	FloatMULT, 		F_FCOMP|F_LONGLAT,
+	FPR_F(FD), NA,		FPR_F(FS), FPR_F(FT), NA,
+	(FPALIGN(FD), FPALIGN(FS), FPALIGN(FT),
+	 SET_FPR_F(FD, FPR_F(FS) * FPR_F(FT))),
+	3, (RSRC((FS)+FPR_BASE,FPR_L(FS)), RSRC((FT)+FPR_BASE,FPR_L(FT))),
+	   (RDST((FD)+FPR_BASE,FPR_L(FD))))
+DEFINST(FMUL_D, 		0x75,
+	"mul.d",		"D,S,T",
+	FloatMULT, 		F_FCOMP|F_LONGLAT,
+	FPR_D(FD), NA,		FPR_D(FS), FPR_D(FT), NA,
+	(FPALIGN(FD), FPALIGN(FS), FPALIGN(FT),
+	 SET_FPR_D(FD, FPR_D(FS) * FPR_D(FT))),
+	3, (RSRC((FS)+FPR_BASE,FPR_L(FS)), RSRC((FS)+1+FPR_BASE,FPR_L((FS)+1)),
+            RSRC((FT)+FPR_BASE,FPR_L(FT)), RSRC((FT)+1+FPR_BASE,FPR_L((FT)+1))),
+           (RDST((FD)+FPR_BASE,FPR_L(FD)), RDST((FD)+1+FPR_BASE,FPR_L((FD)+1))))
+DEFINST(FDIV_S,			0x76,
+	"div.s",		"D,S,T",
+	FloatDIV,		F_FCOMP|F_LONGLAT,
+	FPR_F(FD), NA,		FPR_F(FS), FPR_F(FT), NA,
+	(FPALIGN(FD), FPALIGN(FS), FPALIGN(FT),
+	 (DIV0(FPR_F(FT)), SET_FPR_F(FD, FPR_F(FS) / FPR_F(FT)))),
+	11, (RSRC((FS)+FPR_BASE,FPR_L(FS)), RSRC((FT)+FPR_BASE,FPR_L(FT))),
+	    (RDST((FD)+FPR_BASE,FPR_L(FD))))
+DEFINST(FDIV_D,			0x77,
+	"div.d",		"D,S,T",
+	FloatDIV,		F_FCOMP|F_LONGLAT,
+	FPR_D(FD), NA,		FPR_D(FS), FPR_D(FT), NA,
+	(FPALIGN(FD), FPALIGN(FS), FPALIGN(FT),
+	 (DIV0(FPR_D(FT)), SET_FPR_D(FD, FPR_D(FS) / FPR_D(FT)))),
+	18,(RSRC((FS)+FPR_BASE,FPR_L(FS)), RSRC((FS)+1+FPR_BASE,FPR_L((FS)+1)),
+            RSRC((FT)+FPR_BASE,FPR_L(FT)), RSRC((FT)+1+FPR_BASE,FPR_L((FT)+1))),
+           (RDST((FD)+FPR_BASE,FPR_L(FD)), RDST((FD)+1+FPR_BASE,FPR_L((FD)+1))))
+DEFINST(FABS_S,			0x78,
+	"abs.s",		"D,S",
+	FloatADD,		F_FCOMP,
+	FPR_F(FD), NA,		FPR_F(FS), NA, NA,
+	(FPALIGN(FD), FPALIGN(FS), SET_FPR_F(FD, fabs((double)FPR_F(FS)))),
+	1, (RSRC((FS)+FPR_BASE,FPR_L(FS))), (RDST((FD)+FPR_BASE,FPR_L(FD))))
+DEFINST(FABS_D,			0x79,
+	"abs.d",		"D,S",
+	FloatADD,		F_FCOMP,
+	FPR_D(FD), NA,		FPR_D(FS), NA, NA,
+	(FPALIGN(FD), FPALIGN(FS), SET_FPR_D(FD, fabs(FPR_D(FS)))),
+	1, (RSRC((FS)+FPR_BASE,FPR_L(FS)), RSRC((FS)+1+FPR_BASE,FPR_L((FS)+1))),
+           (RDST((FD)+FPR_BASE,FPR_L(FD)), RDST((FD)+1+FPR_BASE,FPR_L((FD)+1))))
+DEFINST(FMOV_S,			0x7a,
+	"mov.s",		"D,S",
+	FloatADD,		F_FCOMP,
+	FPR_F(FD), NA,		FPR_F(FS), NA, NA,
+	(FPALIGN(FD), FPALIGN(FS), SET_FPR_F(FD, FPR_F(FS))),
+	1, (RSRC((FS)+FPR_BASE,FPR_L(FS))), (RDST((FD)+FPR_BASE,FPR_L(FD))))
+DEFINST(FMOV_D,			0x7b,
+	"mov.d",		"D,S",
+	FloatADD,		F_FCOMP,
+	FPR_D(FD), NA,		FPR_D(FS), NA, NA,
+	(FPALIGN(FD), FPALIGN(FS), SET_FPR_D(FD, FPR_D(FS))),
+	1, (RSRC((FS)+FPR_BASE,FPR_L(FS)), RSRC((FS)+1+FPR_BASE,FPR_L((FS)+1))),
+           (RDST((FD)+FPR_BASE,FPR_L(FD)), RDST((FD)+1+FPR_BASE,FPR_L((FD)+1))))
+DEFINST(FNEG_S,			0x7c,
+	"neg.s",		"D,S",
+	FloatADD,		F_FCOMP,
+	FPR_F(FD), NA,		FPR_F(FS), NA, NA,
+	(FPALIGN(FD), FPALIGN(FS), SET_FPR_F(FD, -FPR_F(FS))),
+	1, (RSRC((FS)+FPR_BASE,FPR_L(FS))), (RDST((FD)+FPR_BASE,FPR_L(FD))))
+DEFINST(FNEG_D,			0x7d,
+	"neg.d",		"D,S",
+	FloatADD,		F_FCOMP,
+	FPR_D(FD), NA,		FPR_D(FS), NA, NA,
+	(FPALIGN(FD), FPALIGN(FS), SET_FPR_D(FD, -FPR_D(FS))),
+	1, (RSRC((FS)+FPR_BASE,FPR_L(FS)), RSRC((FS)+1+FPR_BASE,FPR_L((FS)+1))),
+           (RDST((FD)+FPR_BASE,FPR_L(FD)), RDST((FD)+1+FPR_BASE,FPR_L((FD)+1))))
+
+DEFINST(CVT_S_D,		0x80, 
+	"cvt.s.d", 		"D,S",
+	FloatCVT,		F_FCOMP,
+	FPR_F(FD), NA,		FPR_D(FS), NA, NA,
+	(FPALIGN(FD), FPALIGN(FS), SET_FPR_F(FD, (float)FPR_D(FS))),
+	3, (RSRC((FS)+FPR_BASE,FPR_L(FS)), RSRC((FS)+1+FPR_BASE,FPR_L((FS)+1))),
+	   (RDST((FD)+FPR_BASE,FPR_L(FD))))
+DEFINST(CVT_S_W,		0x81,
+	"cvt.s.w", 		"D,S",
+	FloatCVT,		F_FCOMP,
+	FPR_F(FD), NA,		FPR_L(FS), NA, NA,
+	(FPALIGN(FD), FPALIGN(FS), SET_FPR_F(FD, (float)FPR_L(FS))),
+	3, (RSRC((FS)+FPR_BASE,FPR_L(FS))), (RDST((FD)+FPR_BASE,FPR_L(FD))))
+DEFINST(CVT_D_S,		0x82,
+	"cvt.d.s",		"D,S",
+	FloatCVT,		F_FCOMP,
+	FPR_D(FD), NA,		FPR_F(FS), NA, NA,
+	(FPALIGN(FD), FPALIGN(FS), SET_FPR_D(FD, (double)FPR_F(FS))),
+	3, (RSRC((FS)+FPR_BASE,FPR_L(FS))),
+	   (RDST((FD)+FPR_BASE,FPR_L(FD)), RDST((FD)+1+FPR_BASE,FPR_L((FD)+1))))
+DEFINST(CVT_D_W,		0x83,
+	"cvt.d.w",		"D,S",
+	FloatCVT,		F_FCOMP,
+	FPR_D(FD), NA,		FPR_L(FS), NA, NA,
+	(FPALIGN(FD), FPALIGN(FS), SET_FPR_D(FD, (double)FPR_L(FS))),
+	3, (RSRC((FS)+FPR_BASE,FPR_L(FS))),
+           (RDST((FD)+FPR_BASE,FPR_L(FD)), RDST((FD)+1+FPR_BASE,FPR_L((FD)+1))))
+DEFINST(CVT_W_S,		0x84,
+	"cvt.w.s", 		"D,S",
+	FloatCVT,		F_FCOMP,
+	FPR_L(FD), NA,		FPR_F(FS), NA, NA,
+	(FPALIGN(FD), FPALIGN(FS), SET_FPR_L(FD, (long)FPR_F(FS))),
+	3, (RSRC((FS)+FPR_BASE,FPR_L(FS))), (RDST((FD)+FPR_BASE,FPR_L(FD))))
+DEFINST(CVT_W_D,		0x85,
+	"cvt.w.d", 		"D,S",
+	FloatCVT,		F_FCOMP,
+	FPR_L(FD), NA,		FPR_D(FS), NA, NA,
+	(FPALIGN(FD), FPALIGN(FS), SET_FPR_L(FD, (long)FPR_D(FS))),
+	3, (RSRC((FS)+FPR_BASE,FPR_L(FS)), RSRC((FS)+1+FPR_BASE,FPR_L((FS)+1))),
+           (RDST((FD)+FPR_BASE,FPR_L(FD))))
+
+DEFINST(C_EQ_S,			0x90,
+	"c.eq.s", 		"S,T",
+	FloatCMP,		F_FCOMP,
+	FCC, NA,		FPR_F(FS), FPR_F(FT), NA,
+	(FPALIGN(FS), FPALIGN(FT), SET_FCC(FPR_F(FS) == FPR_F(FT))),
+	3, (RSRC((FS)+FPR_BASE,FPR_L(FS)), RSRC((FT)+FPR_BASE,FPR_L(FT))),
+	   (RDST(FCC_ID,FCC)))
+DEFINST(C_EQ_D,			0x91,
+	"c.eq.d", 		"S,T",
+	FloatCMP,		F_FCOMP,
+	FCC, NA,		FPR_D(FS), FPR_D(FT), NA,
+	(FPALIGN(FS), FPALIGN(FT), SET_FCC(FPR_D(FS) == FPR_D(FT))),
+	3, (RSRC((FS)+FPR_BASE,FPR_L(FS)), RSRC((FS)+1+FPR_BASE,FPR_L((FS)+1)),
+	    RSRC((FT)+FPR_BASE,FPR_L(FT)), RSRC((FT)+1+FPR_BASE,FPR_L((FT)+1))),
+	   (RDST(FCC_ID,FCC)))
+DEFINST(C_LT_S,			0x92,
+	"c.lt.s", 		"S,T",
+	FloatCMP,		F_FCOMP,
+	FCC, NA,		FPR_F(FS), FPR_F(FT), NA,
+	(FPALIGN(FS), FPALIGN(FT), SET_FCC(FPR_F(FS) < FPR_F(FT))),
+	3, (RSRC((FS)+FPR_BASE,FPR_L(FS)), RSRC((FT)+FPR_BASE,FPR_L(FT))),
+	   (RDST(FCC_ID,FCC)))
+DEFINST(C_LT_D,			0x93,
+	"c.lt.d", 		"S,T",
+	FloatCMP,		F_FCOMP,
+	FCC, NA,		FPR_D(FS), FPR_D(FT), NA,
+	(FPALIGN(FS), FPALIGN(FT), SET_FCC(FPR_D(FS) < FPR_D(FT))),
+	3, (RSRC((FS)+FPR_BASE,FPR_L(FS)), RSRC((FS)+1+FPR_BASE,FPR_L((FS)+1)),
+            RSRC((FT)+FPR_BASE,FPR_L(FT)), RSRC((FT)+1+FPR_BASE,FPR_L((FT)+1))),
+           (RDST(FCC_ID,FCC)))
+DEFINST(C_LE_S,			0x94,
+	"c.le.s", 		"S,T",
+	FloatCMP,		F_FCOMP,
+	FCC, NA,		FPR_F(FS), FPR_F(FT), NA,
+	(FPALIGN(FS), FPALIGN(FT), SET_FCC(FPR_F(FS) <= FPR_F(FT))),
+	3, (RSRC((FS)+FPR_BASE,FPR_L(FS)), RSRC((FT)+FPR_BASE,FPR_L(FT))),
+	   (RDST(FCC_ID,FCC)))
+DEFINST(C_LE_D,			0x95,
+	"c.le.d", 		"S,T",
+	FloatCMP,		F_FCOMP,
+	FCC, NA,		FPR_D(FS), FPR_D(FT), NA,
+	(FPALIGN(FS), FPALIGN(FT), SET_FCC(FPR_D(FS) <= FPR_D(FT))),
+	3, (RSRC((FS)+FPR_BASE,FPR_L(FS)), RSRC((FS)+1+FPR_BASE,FPR_L((FS)+1)),
+            RSRC((FT)+FPR_BASE,FPR_L(FT)), RSRC((FT)+1+FPR_BASE,FPR_L((FT)+1))),
+           (RDST(FCC_ID,FCC)))
+
+DEFINST(FSQRT_S,		0x96,
+	"sqrt.s",		"D,S",
+	FloatSQRT,		F_FCOMP|F_LONGLAT,
+	FPR_F(FD), NA,		FPR_F(FS), NA, NA,
+	(FPALIGN(FD), FPALIGN(FS), SET_FPR_F(FD, sqrt((double)FPR_F(FS)))),
+	17, (RSRC((FS)+FPR_BASE,FPR_L(FS))), (RDST((FD)+FPR_BASE,FPR_L(FD))))
+DEFINST(FSQRT_D,		0x97,
+	"sqrt.d",		"D,S",
+	FloatSQRT,		F_FCOMP|F_LONGLAT,
+	FPR_D(FD), NA,		FPR_D(FS), NA, NA,
+	(FPALIGN(FD), FPALIGN(FS), SET_FPR_D(FD, sqrt(FPR_D(FS)))),
+	32,(RSRC((FS)+FPR_BASE,FPR_L(FS)), RSRC((FS)+1+FPR_BASE,FPR_L((FS)+1))),
+	   (RDST((FD)+FPR_BASE,FPR_L(FD)), RDST((FD)+1+FPR_BASE,FPR_L((FD)+1))))
+
+
+/*
+ * miscellaneous
+ */
+
+DEFINST(SYSCALL, 		0xa0,
+	"syscall", 		"",
+	NA, 			F_TRAP,
+	NA, NA,			NA, NA, NA,
+	SYSCALL(inst),
+	1, NADA, NADA)
+DEFINST(BREAK,			0xa1,
+	"break",		"B",
+	NA,			F_TRAP,
+	NA, NA,			NA, NA, NA,
+	/* NOTE: these are decoded speculatively, as they occur in integer
+	   divide sequences, however, they should NEVER be executed under
+	   non-exception conditions */
+	/* abort() */0,
+	1, NADA, NADA)
+DEFINST(LUI, 			0xa2,
+	"lui",			"t,U",
+	IntALU,			F_ICOMP,
+	GPR(RT), NA, 		NA, NA, NA,
+	SET_GPR(RT, UIMM << 16),
+	1, NADA, (RDST(RT,GPR(RT))))
+
+DEFINST(MFC1,	 		0xa3,
+	"mfc1", 		"t,S",
+	IntALU, 		F_ICOMP,
+	GPR(RT), NA,		FPR_L(FS), NA, NA,
+	SET_GPR(RT, FPR_L(FS)),
+	1, (RSRC((FS)+FPR_BASE,FPR_L(FS))), (RDST(RT,GPR(RT))))
+DEFINST(DMFC1, 			0xa7,
+	"dmfc1",		"t,S",
+	IntALU,			F_ICOMP,
+	GPR_D(RT), NA,	 	FPR_D(FS), NA, NA,
+	(INTALIGN(RT), FPALIGN(FS),
+	 SET_GPR(RT, FPR_L(FS)), SET_GPR((RT)+1, FPR_L((FS)+1))),
+	1, (RSRC((FS)+FPR_BASE,FPR_L(FS)), RSRC((FS)+1+FPR_BASE,FPR_L((FS)+1))),
+	   (RDST(RT,GPR(RT)), RDST((RT)+1,GPR((RT)+1))))
+DEFINST(CFC1, 			0xa4,
+	"cfc1", 		"t,S",
+	IntALU, 		F_ICOMP,
+	NA, NA,			NA, NA, NA,
+	/* FIXME: is this needed */(0),
+	1, UNIMP, UNIMP)
+DEFINST(MTC1, 			0xa5,
+	"mtc1", 		"t,S",
+	IntALU, 		F_ICOMP,
+	FPR_L(FS), NA,		GPR(RT), NA, NA,
+	SET_FPR_L(FS, GPR(RT)),
+	1, (RSRC(RT,GPR(RT))), (RDST((FS)+FPR_BASE,FPR_L(FS))))
+DEFINST(DMTC1,	 		0xa8,
+	"dmtc1",		"t,S",
+	IntALU,			F_ICOMP,
+	FPR_D(FS), NA,		GPR_D(RT), NA, NA,
+	(FPALIGN(FS), INTALIGN(RT),
+	 SET_FPR_L(FS, GPR(RT)), SET_FPR_L((FS)+1, GPR((RT)+1))),
+	1, (RSRC(RT,GPR(RT)), RSRC((RT)+1,GPR((RT)+1))),
+	   (RDST((FS)+FPR_BASE,FPR_L(FS)), RDST((FS)+1+FPR_BASE,FPR_L((FS)+1))))
+DEFINST(CTC1, 			0xa6,
+	"ctc1", 		"t,S",
+	IntALU, 		F_ICOMP,
+	NA, NA,			NA, NA, NA,
+	/* FIXME: is this needed */(0),
+	1, UNIMP, UNIMP)
+
+#ifdef IMPL
+
+/* non-expression instruction implementations */
+/*
+ * rd <- [rt] >> shamt)
+ */
+void
+Thread::InstSRA(SS_INST_TYPE inst)
+{
+  unsigned int i;
+
+  /* Although SRA could be implemented with the >> operator in the
+     MIPS machine, there are other machines that perform a logical
+     right shift with the >> operator. */
+  if (GPR(RT) & 020000000000) {
+    SET_GPR(RD, GPR(RT));
+    for (i = 0; i < SHAMT; i++) {
+      SET_GPR(RD, (GPR(RD) >> 1) | 020000000000);
+    }
+  }
+  else {
+    SET_GPR(RD, GPR(RT) >> SHAMT);
+  }
+}
+
+/*
+ * rd <- [rt] >> [5 LSBs of rs])
+ */
+void
+Thread::InstSRAV(SS_INST_TYPE inst)
+{
+  unsigned int i;
+  unsigned long shamt = GPR(RS) & 037;
+
+  if (GPR(RT) & 020000000000) {
+    SET_GPR(RD, GPR(RT));
+    for (i = 0; i < shamt; i++) {
+      SET_GPR(RD, (GPR(RD) >> 1) | 020000000000);
+    }
+  }
+  else {
+    SET_GPR(RD, GPR(RT) >> shamt);
+  }
+}
+
+/*
+ * HI,LO <- [rs] * [rt]    Integer product of [rs] & [rt] to HI/LO
+ */
+void
+Thread::InstMULT(SS_INST_TYPE inst)
+{
+  int sign1, sign2;
+  long i, op1, op2;
+
+  sign1 = sign2 = 0;
+  SET_HI(0);
+  SET_LO(0);
+  op1 = GPR(RS);
+  op2 = GPR(RT);
+
+  /* For multiplication, treat -ve numbers as +ve numbers by
+     converting 2's complement -ve numbers to ordinary notation */
+  if (op1 & 020000000000) {
+    sign1 = 1;
+    op1 = (~op1) + 1;
+  }
+  if (op2 & 020000000000) {
+    sign2 = 1;
+    op2 = (~op2) + 1;
+  }
+  if (op1 & 020000000000)
+    SET_LO(op2);
+  for (i = 0; i < 31; i++) {
+    SET_HI(HI << 1);
+    SET_HI(HI + extractl(LO, 31, 1));
+    SET_LO(LO << 1);
+    if ((extractl(op1, 30-i, 1)) == 1) {
+      if (((unsigned)037777777777 - (unsigned)LO) < (unsigned)op2) {
+	SET_HI(HI + 1);
+      }
+      SET_LO(LO + op2);
+    }
+  }
+
+  /* Take 2's complement of the result if the result is negative */
+  if (sign1 ^ sign2) {
+    SET_LO(~LO);
+    SET_HI(~HI);
+    if ((unsigned)LO == 037777777777) {
+      SET_HI(HI + 1);
+    }
+    SET_LO(LO + 1);
+  }
+}
+
+/*
+ * HI,LO <- [rs] * [rt]    Integer product of [rs] & [rt] to HI/LO
+ */
+void
+Thread::InstMULTU(SS_INST_TYPE inst)
+{
+  long i;
+
+  SET_HI(0);
+  SET_LO(0);
+  if (GPR(RS) & 020000000000)
+    SET_LO(GPR(RT));
+  for (i = 0; i < 31; i++) {
+    SET_HI(HI << 1);
+    SET_HI(HI + extractl(LO, 31, 1));
+    SET_LO(LO << 1);
+    if ((extractl(GPR(RS), 30-i, 1)) == 1) {
+      if (((unsigned)037777777777 - (unsigned)LO) < (unsigned)GPR(RT)) {
+	SET_HI(HI + 1);
+      }
+      SET_LO(LO + GPR(RT));
+    }
+  }
+}
+
+#endif

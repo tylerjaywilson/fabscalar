@@ -1,0 +1,40 @@
+* File: 1r1w_new.pex.netlist
+* Created: Thu Sep 10 14:53:56 2009
+* Program "Calibre xRC"
+* Version "v2007.3_36.25"
+* 
+.subckt bitcell_1r1w  R1_WL W1_WL 
++ R1_BTL R1_BTLB W1_BTL W1_BTLB
+* 
+MM0 GND! q qbar GND! NMOS_VTL L=5e-08 W=9e-08 AD=1.26e-14 AS=9.45e-15
++ PD=4.6e-07 PS=3.9e-07
+MM1 q qbar GND! GND! NMOS_VTL L=5e-08 W=9e-08 AD=9.45e-15 AS=1.26e-14
++ PD=3.9e-07 PS=4.6e-07
+MM3 VDD! q qbar VDD! PMOS_VTL L=5e-08 W=1.8e-07 AD=2.52e-14
++ AS=1.89e-14 PD=6.4e-07 PS=5.7e-07
+MM2 q qbar VDD! VDD! PMOS_VTL L=5e-08 W=1.8e-07 AD=1.89e-14
++ AS=2.52e-14 PD=5.7e-07 PS=6.4e-07
+MM41 qbar W1_WL W1_BTLB GND! NMOS_VTL L=5e-08 W=9e-08 AD=9.45e-15
++ AS=9.45e-15 PD=3.9e-07 PS=3.9e-07
+MM47 R1_BTLB R1_WL qbar GND! NMOS_VTL L=5e-08 W=9e-08 AD=9.45e-15
++ AS=9.45e-15 PD=3.9e-07 PS=3.9e-07
+MM40 W1_BTL W1_WL q GND! NMOS_VTL L=5e-08 W=9e-08 AD=9.45e-15 AS=9.45e-15
++ PD=3.9e-07 PS=3.9e-07
+MM78 R1_BTL R1_WL q GND! NMOS_VTL L=5e-08 W=9e-08 AD=9.45e-15 AS=9.45e-15
++ PD=3.9e-07 PS=3.9e-07
+c_7 W1_BTLB 0 0.0628163f
+c_15 R1_BTLB 0 0.0614819f
+c_25 W1_WL 0 0.0983774f
+c_35 R1_WL 0 0.0965714f
+c_42 W1_BTL 0 0.0647745f
+c_50 R1_BTL 0 0.061242f
+c_59 qbar 0 0.0856441f
+c_69 GND! 0 0.0787307f
+c_79 VDD! 0 0.083533f
+c_88 q 0 0.0876857f
+*
+.include "1r1w_new.pex.netlist.1R1W_NEW.pxi"
+*
+.ends
+*
+*

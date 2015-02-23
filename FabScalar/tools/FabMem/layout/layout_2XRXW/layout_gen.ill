@@ -1,0 +1,40 @@
+/***************************************************************************
+#                     NORTH CAROLINA STATE UNIVERSITY
+#                                  CESR
+#
+# File Name     : layout_gen.ill
+#
+# Purpose       : Top Skill Script to configure the parameter for SRAM compiler
+# Version       : 1.0
+# Date          :
+# Author        : Tanmay Shah
+#
+#**************************************************************************/
+
+Rp = 10 
+Wp = 5
+D = 92
+W = 25
+DC = 2
+
+declare(delw_array[8]) ;; array containing width of the bitcell
+declare(delh_array[8]) ;; array containing height of the bitcell
+
+delw_array[7]=6.72 delh_array[7]=4.115 ;for 16r8w
+delw_array[6]=5.88 delh_array[6]=3.695 ; for 14r7w
+delw_array[5]=5.04 delh_array[5]=3.275 ; for 12r6w
+delw_array[4]=4.2  delh_array[4]=2.855 ;for 10r5w
+delw_array[3]=3.36 delh_array[3]=2.4325 ; for 8r4w
+delw_array[2]=2.52 delh_array[2]=2.00750 ;for 6r3w
+delw_array[1]=1.68 delh_array[1]=1.5875 ;for 4r2w
+delw_array[0]=1.305 delh_array[0] = 1.2975 ;for 2r1w
+
+;; get the width and height of the bitcell from above arrays
+del_w=delw_array[Wp-1]
+del_h=delh_array[Wp-1]
+
+;; Skill script to generate bitcell array and to
+;; load other scripts to place peripheral circuits
+load("./layout_2XRXW/array_skill.ill")
+
+

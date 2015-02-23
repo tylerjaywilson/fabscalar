@@ -1,0 +1,69 @@
+************************************************************************
+* auCdl Netlist:
+* 
+* Library Name:  dual_bitline
+* Top Cell Name: buff
+* View Name:     schematic
+* Netlisted on:  Jul  1 11:22:23 2009
+************************************************************************
+
+*.EQUATION
+*.SCALE METER
+.PARAM
+
+*.GLOBAL vdd!
++        gnd!
+
+*.PIN vdd!
+*+    gnd!
+
+************************************************************************
+* Library Name: dual_bitline
+* Cell Name:    buff
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT buff out in
+*.PININFO out:O in:I
+MM8 out net17 gnd! gnd! NMOS_VTL W=360n L=50n
+MM7 out net17 gnd! gnd! NMOS_VTL W=360n L=50n
+MM6 out net17 gnd! gnd! NMOS_VTL W=360n L=50n
+MM5 out net17 gnd! gnd! NMOS_VTL W=360n L=50n
+MM4 net17 net33 gnd! gnd! NMOS_VTL W=360n L=50n
+MM0 net33 in gnd! gnd! NMOS_VTL W=90n L=50n
+MM10 out net17 vdd! vdd! PMOS_VTL W=1.44u L=50n
+MM9 out net17 vdd! vdd! PMOS_VTL W=1.44u L=50n
+MM3 net17 net33 vdd! vdd! PMOS_VTL W=360n L=50n
+MM2 net17 net33 vdd! vdd! PMOS_VTL W=360n L=50n
+MM1 net33 in vdd! vdd! PMOS_VTL W=180n L=50n
+.ENDS
+
+
+.SUBCKT buff3 in out out_i
+*.PININFO in:I out:O out_i:O
+MM8 out_i out gnd! gnd! NMOS_VTL W=360n L=50n
+MM7 out_i out gnd! gnd! NMOS_VTL W=360n L=50n
+MM6 out_i out gnd! gnd! NMOS_VTL W=360n L=50n
+MM5 out_i out gnd! gnd! NMOS_VTL W=360n L=50n
+MM4 out net33 gnd! gnd! NMOS_VTL W=360n L=50n
+MM0 net33 in gnd! gnd! NMOS_VTL W=90n L=50n
+MM10 out_i out vdd! vdd! PMOS_VTL W=1.44u L=50n
+MM9 out_i out vdd! vdd! PMOS_VTL W=1.44u L=50n
+MM3 out net33 vdd! vdd! PMOS_VTL W=360n L=50n
+MM2 out net33 vdd! vdd! PMOS_VTL W=360n L=50n
+MM1 net33 in vdd! vdd! PMOS_VTL W=180n L=50n
+.ENDS
+
+
+.SUBCKT inverter_4 in out
+*.PININFO in:I out:O
+MM0 out in vdd! vdd! PMOS_VTL W=720n L=50n
+MM1 out in gnd! gnd! NMOS_VTL W=360n L=50n
+.ENDS
+
+
+.SUBCKT inverter in out 
+*.PININFO in:I out:O 
+MM0 out in gnd! gnd! NMOS_VTL W=90n L=50n
+MM1 out in vdd! vdd! PMOS_VTL W=180n L=50n
+.ENDS

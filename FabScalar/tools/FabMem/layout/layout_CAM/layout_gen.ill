@@ -1,0 +1,41 @@
+/***************************************************************************
+#                     NORTH CAROLINA STATE UNIVERSITY
+#                                  CESR
+#
+# File Name     : layout_gen.ill
+#
+# Purpose       : To configure the parameter for CAM compiler#
+# Version       : 1.0
+# Date          :
+# Author        : Tanmay Shah
+#
+#**************************************************************************/
+
+;; This is a Top Skill Script to configure the parameter for CAM compiler 
+
+Rp = 3 
+Wp = 3
+D = 48
+W = 6
+
+declare(delw_array[8]) ;; array containing width of the bitcell
+declare(delh_array[8]) ;; array containing height of the bitcell
+
+delw_array[7]=4.97 delh_array[7]=3.9575 ;for 8r8w
+delw_array[6]=4.53 delh_array[6]=3.5475 ; for 14r7w
+delw_array[5]=3.935 delh_array[5]=3.2675 ; for 12r6w
+delw_array[4]=3.465  delh_array[4]=2.9875 ;for 5r5w
+delw_array[3]=2.72 delh_array[3]=2.625 ; for 4r4w
+delw_array[2]=2.345 delh_array[2]=2.4725 ;for 3r3w
+delw_array[1]=1.755 delh_array[1]=1.785 ;for 2r2w
+;delw_array[0]=1.64 delh_array[0] = 1.4725 ;for 1r1w
+delw_array[0]=1.64 delh_array[0] = 1.5575 ;for 1r1w
+
+;; get the width and height of the bitcell from above arrays
+del_w=delw_array[Wp-1]
+del_h=delh_array[Wp-1]
+
+;; Skill script to generate bitcell array and to
+;; load other scripts to place peripheral circuits
+load("./layout_CAM/array_skill.ill")
+

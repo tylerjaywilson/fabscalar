@@ -1,0 +1,92 @@
+************************************************************************
+* auCdl Netlist:
+* 
+* Library Name:  CAM
+* Top Cell Name: 8r8w_new
+* View Name:     schematic
+* Netlisted on:  Feb 27 10:35:52 2010
+************************************************************************
+
+*.EQUATION
+*.SCALE METER
+.PARAM
+
+*.GLOBAL gnd!
++        vdd!
+
+*.PIN gnd!
+*+    vdd!
+
+************************************************************************
+* Library Name: CAM
+* Cell Name:    8r8w_new
+* View Name:    schematic
+************************************************************************
+
+.SUBCKT 8r8w_new W1_WL W2_WL W3_WL W4_WL W5_WL W6_WL W7_WL W8_WL
++ R1_WL R2_WL R3_WL R4_WL R5_WL R6_WL R7_WL R8_WL
++ W1_BTL W1_BTLB W2_BTL W2_BTLB W3_BTL W3_BTLB W4_BTL W4_BTLB
++ W5_BTL W5_BTLB W6_BTL W6_BTLB W7_BTL W7_BTLB W8_BTL W8_BTLB
++ R1_BTL R1_BTLB R2_BTL R2_BTLB R3_BTL R3_BTLB R4_BTL R4_BTLB
++ R5_BTL R5_BTLB R6_BTL R6_BTLB R7_BTL R7_BTLB R8_BTL R8_BTLB
+*.PININFO r1_btl:I r1_btlb:I r1_wl:I r2_btl:I r2_btlb:I r2_wl:I r3_btl:I 
+*.PININFO r3_btlb:I r3_wl:I r4_btl:I r4_btlb:I r4_wl:I r5_btl:I r5_btlb:I 
+*.PININFO r5_wl:I r6_btl:I r6_btlb:I r6_wl:I r7_btl:I r7_btlb:I r7_wl:I 
+*.PININFO r8_btl:I r8_btlb:I r8_wl:I w1_btl:I w1_btlb:I w1_wl:I w2_btl:I 
+*.PININFO w2_btlb:I w2_wl:I w3_btl:I w3_btlb:I w3_wl:I w4_btl:I w4_btlb:I 
+*.PININFO w4_wl:I w5_btl:I w5_btlb:I w5_wl:I w6_btl:I w6_btlb:I w6_wl:I 
+*.PININFO w7_btl:I w7_btlb:I w7_wl:I w8_btl:I w8_btlb:I w8_wl:I
+MM155 r2_wl D net0172 gnd! NMOS_VTL W=360n L=50n
+MM154 net0172 r2_btl gnd! gnd! NMOS_VTL W=360n L=50n
+MM157 net0179 r1_btl gnd! gnd! NMOS_VTL W=360n L=50n
+MM156 r1_wl D net0179 gnd! NMOS_VTL W=360n L=50n
+MM138 r7_wl Dbar net0130 gnd! NMOS_VTL W=360n L=50n
+MM139 net0130 r7_btlb gnd! gnd! NMOS_VTL W=360n L=50n
+MM128 net0116 r2_btlb gnd! gnd! NMOS_VTL W=360n L=50n
+MM129 r2_wl Dbar net0116 gnd! NMOS_VTL W=360n L=50n
+MM127 r1_wl Dbar net109 gnd! NMOS_VTL W=360n L=50n
+MM96 net109 r1_btlb gnd! gnd! NMOS_VTL W=360n L=50n
+MM136 net0131 r6_btlb gnd! gnd! NMOS_VTL W=360n L=50n
+MM137 r6_wl Dbar net0131 gnd! NMOS_VTL W=360n L=50n
+MM145 net0160 r7_btl gnd! gnd! NMOS_VTL W=360n L=50n
+MM142 net0149 r8_btl gnd! gnd! NMOS_VTL W=360n L=50n
+MM67 w8_btl w8_wl D gnd! NMOS_VTL W=90n L=50n
+MM66 Dbar w8_wl w8_btlb gnd! NMOS_VTL W=90n L=50n
+MM140 net0107 r8_btlb gnd! gnd! NMOS_VTL W=360n L=50n
+MM144 r7_wl D net0160 gnd! NMOS_VTL W=360n L=50n
+MM143 r8_wl D net0149 gnd! NMOS_VTL W=360n L=50n
+MM135 net098 r5_btlb gnd! gnd! NMOS_VTL W=360n L=50n
+MM134 r5_wl Dbar net098 gnd! NMOS_VTL W=360n L=50n
+MM63 w7_btl w7_wl D gnd! NMOS_VTL W=90n L=50n
+MM62 Dbar w7_wl w7_btlb gnd! NMOS_VTL W=90n L=50n
+MM133 net0124 r4_btlb gnd! gnd! NMOS_VTL W=360n L=50n
+MM151 r4_wl D net0128 gnd! NMOS_VTL W=360n L=50n
+MM150 net0128 r4_btl gnd! gnd! NMOS_VTL W=360n L=50n
+MM132 r4_wl Dbar net0124 gnd! NMOS_VTL W=360n L=50n
+MM131 r3_wl Dbar net0117 gnd! NMOS_VTL W=360n L=50n
+MM146 net0163 r6_btl gnd! gnd! NMOS_VTL W=360n L=50n
+MM41 Dbar w1_wl w1_btlb gnd! NMOS_VTL W=90n L=50n
+MM130 net0117 r3_btlb gnd! gnd! NMOS_VTL W=360n L=50n
+MM149 net0167 r5_btl gnd! gnd! NMOS_VTL W=360n L=50n
+MM38 w3_btl w3_wl D gnd! NMOS_VTL W=90n L=50n
+MM148 r5_wl D net0167 gnd! NMOS_VTL W=360n L=50n
+MM52 w4_btl w4_wl D gnd! NMOS_VTL W=90n L=50n
+MM53 Dbar w4_wl w4_btlb gnd! NMOS_VTL W=90n L=50n
+MM141 r8_wl Dbar net0107 gnd! NMOS_VTL W=360n L=50n
+MM54 w5_btl w5_wl D gnd! NMOS_VTL W=90n L=50n
+MM55 Dbar w5_wl w5_btlb gnd! NMOS_VTL W=90n L=50n
+MM43 Dbar w3_wl w3_btlb gnd! NMOS_VTL W=90n L=50n
+MM42 Dbar w2_wl w2_btlb gnd! NMOS_VTL W=90n L=50n
+MM40 w1_btl w1_wl D gnd! NMOS_VTL W=90n L=50n
+MM39 w2_btl w2_wl D gnd! NMOS_VTL W=90n L=50n
+MM153 net0177 r3_btl gnd! gnd! NMOS_VTL W=360n L=50n
+MM152 r3_wl D net0177 gnd! NMOS_VTL W=360n L=50n
+MM147 r6_wl D net0163 gnd! NMOS_VTL W=360n L=50n
+MM58 Dbar w6_wl w6_btlb gnd! NMOS_VTL W=90n L=50n
+MM59 w6_btl w6_wl D gnd! NMOS_VTL W=90n L=50n
+MM1 D Dbar gnd! gnd! NMOS_VTL W=90n L=50n
+MM0 gnd! D Dbar gnd! NMOS_VTL W=90n L=50n
+MM3 vdd! D Dbar vdd! PMOS_VTL W=180n L=50n
+MM2 D Dbar vdd! vdd! PMOS_VTL W=180n L=50n
+.ENDS
+
