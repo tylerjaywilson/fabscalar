@@ -281,7 +281,7 @@ else
 
 # create all directories required by FabGen
 my $PATH    = &returnPath();
-mkdir $PATH or die "$PATH directory already exists!!";
+mkdir $PATH or die "$PATH directory already exists!!: $!.";
 
 system("mkdir $PATH/decode");
 system("mkdir $PATH/dispatch");

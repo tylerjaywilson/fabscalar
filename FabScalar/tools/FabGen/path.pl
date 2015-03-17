@@ -18,8 +18,8 @@ use warnings;
 ################################################################################
 
 
-my $FABSCALAR_INSTALLATION_DIR = "~";
-my $core_name = "core-t";
+my $FABSCALAR_INSTALLATION_DIR = "/root/Desktop/archProj";
+my $core_name = "core-test";
 
 sub returnPath()
 {
